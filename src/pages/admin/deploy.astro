@@ -113,7 +113,7 @@ const pageTitle = "Deploy Settings";
       
       document.getElementById('save-config').addEventListener('click', () => {
         const project = document.getElementById('cf-project').value;
-        const token = document.getElementById('cf-token').value;
+        const token = document.getElementById('cf-token').value || storedToken;
         const account = document.getElementById('cf-account').value;
         
         if (!project || !token || !account) {
@@ -124,17 +124,18 @@ const pageTitle = "Deploy Settings";
         localStorage.setItem('cf_project', project);
         localStorage.setItem('cf_token', token);
         localStorage.setItem('cf_account', account);
+        storedToken = token;
         document.getElementById('cf-token').placeholder = maskToken(token);
         alert('Settings saved to browser!');
       });
       
       document.getElementById('save-config-file').addEventListener('click', async () => {
         const project = document.getElementById('cf-project').value;
-        const token = document.getElementById('cf-token').value;
+        const token = document.getElementById('cf-token').value || storedToken;
         const account = document.getElementById('cf-account').value;
         
-        if (!project || !token || !account) {
-          alert('Please fill in all fields first!');
+        if (!project || !account) {
+          alert('Please fill in Project Name and Account ID first!');
           return;
         }
         
