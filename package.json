@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "astro dev",
-    "build": "trap 'mv src/admin.tmp src/pages/admin 2>/dev/null || true' EXIT; mv src/pages/admin src/admin.tmp 2>/dev/null; (astro build); exitCode=$?; mv src/admin.tmp src/pages/admin 2>/dev/null; exit $exitCode",
+    "build": "trap 'mv src/admin.tmp src/pages/admin 2>/dev/null || true' EXIT; [ -d src/admin.tmp ] && mv src/admin.tmp src/pages/admin 2>/dev/null; [ ! -d src/pages/admin ] && mkdir -p src/pages/admin; mv src/pages/admin src/admin.tmp 2>/dev/null; (astro build); exitCode=$?; mv src/admin.tmp src/pages/admin 2>/dev/null; exit $exitCode",
     "preview": "astro preview"
   },
   "devDependencies": {
