@@ -55,8 +55,8 @@ const pageTitle = "Deploy Settings";
               </div>
               
               <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">API Token</label>
-                <input type="password" id="cf-token" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg" placeholder="Cloudflare API Token" />
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">API Token <a href="https://dash.cloudflare.com/profile/api-tokens" target="_blank" class="text-blue-500 text-xs">(Get Token →)</a></label>
+                <input type="password" id="cf-token" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg" placeholder="toke****oken" />
                 <p class="text-xs text-gray-500 mt-1">Token needs "Cloudflare Pages: Edit" permission</p>
               </div>
               
@@ -82,6 +82,16 @@ const pageTitle = "Deploy Settings";
             </div>
           </div>
           
+          <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-6">
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Local Config File</h2>
+            <p class="text-gray-600 dark:text-gray-300 mb-4 text-sm">Save your config to a local file instead of browser storage. File is automatically added to .gitignore.</p>
+            <div class="flex gap-3">
+              <button id="load-config" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition">Load from File</button>
+              <button id="save-config-file" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">Save to File</button>
+            </div>
+            <p id="config-status" class="text-sm text-gray-500 mt-2"></p>
+          </div>
+          
           <div class="bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
             <h3 class="font-medium text-yellow-800 dark:text-yellow-200 mb-2">Getting API Token</h3>
             <ol class="text-sm text-yellow-700 dark:text-yellow-300 space-y-1 list-decimal list-inside">
@@ -96,18 +106,25 @@ const pageTitle = "Deploy Settings";
     </div>
     
     <script is:inline>
-      // Load saved config
+      function maskToken(token) {
+        if (!token || token.length < 8) return token;
+        return token.slice(0, 4) + '****' + token.slice(-4);
+      }
+      
+      let storedToken = localStorage.getItem('cf_token');
+      if (storedToken) {
+        document.getElementById('cf-token').value = storedToken;
+        document.getElementById('cf-token').placeholder = maskToken(storedToken);
+      }
+      
       const savedProject = localStorage.getItem('cf_project');
-      const savedToken = localStorage.getItem('cf_token');
       const savedAccount = localStorage.getItem('cf_account');
       if (savedProject) document.getElementById('cf-project').value = savedProject;
-      if (savedToken) document.getElementById('cf-token').value = savedToken;
       if (savedAccount) document.getElementById('cf-account').value = savedAccount;
       
-      // Save config
       document.getElementById('save-config').addEventListener('click', () => {
         const project = document.getElementById('cf-project').value;
-        const token = document.getElementById('cf-token').value;
+        const token = document.getElementById('cf-token').value || storedToken;
         const account = document.getElementById('cf-account').value;
         
         if (!project || !token || !account) {
@@ -118,10 +135,65 @@ const pageTitle = "Deploy Settings";
         localStorage.setItem('cf_project', project);
         localStorage.setItem('cf_token', token);
         localStorage.setItem('cf_account', account);
-        alert('Settings saved!');
+        storedToken = token;
+        document.getElementById('cf-token').placeholder = maskToken(token);
+        alert('Settings saved to browser!');
       });
       
-      // Deploy
+      document.getElementById('save-config-file').addEventListener('click', async () => {
+        const project = document.getElementById('cf-project').value;
+        const token = document.getElementById('cf-token').value || storedToken;
+        const account = document.getElementById('cf-account').value;
+        
+        if (!project || !account) {
+          alert('Please fill in Project Name and Account ID first!');
+          return;
+        }
+        
+        const config = { project, token, account };
+        const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'staticpress-config.json';
+        a.click();
+        URL.revokeObjectURL(url);
+        
+        document.getElementById('config-status').textContent = 'Config downloaded! WARNING: Contains API token - keep file secure.';
+      });
+      
+      document.getElementById('load-config').addEventListener('click', async () => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.json';
+        input.onchange = async (e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+          
+          const text = await file.text();
+          try {
+            const config = JSON.parse(text);
+            if (config.project) document.getElementById('cf-project').value = config.project;
+            if (config.account) document.getElementById('cf-account').value = config.account;
+            
+            localStorage.setItem('cf_project', config.project || '');
+            localStorage.setItem('cf_account', config.account || '');
+            if (config.token) {
+              localStorage.setItem('cf_token', config.token);
+              storedToken = config.token;
+              document.getElementById('cf-token').value = config.token;
+              document.getElementById('cf-token').placeholder = maskToken(config.token);
+              document.getElementById('config-status').textContent = 'Config loaded with API token!';
+            } else {
+              document.getElementById('config-status').textContent = 'Config loaded! Token still needed - enter it below.';
+            }
+          } catch (err) {
+            alert('Invalid config file');
+          }
+        };
+        input.click();
+      });
+      
       document.getElementById('deploy-btn').addEventListener('click', async () => {
         const project = localStorage.getItem('cf_project');
         const token = localStorage.getItem('cf_token');
@@ -141,8 +213,9 @@ const pageTitle = "Deploy Settings";
         output.classList.remove('hidden');
         logs.textContent = 'Deploying to Cloudflare Pages...\n\n';
         logs.textContent += 'Run this command in your terminal:\n\n';
-        logs.textContent += `  CF_API_TOKEN=${token} \\\n  CF_ACCOUNT_ID=${account} \\\n  bunx wrangler pages deploy dist --project-name=${project}\n\n`;
-        logs.textContent += 'Make sure you have run "bun run build" first!';
+        logs.textContent += `  CF_API_TOKEN=${maskToken(token)} \\\n  CF_ACCOUNT_ID=${account} \\\n  bunx wrangler pages deploy dist --project-name=${project}\n\n`;
+        logs.textContent += 'Make sure you have run "bun run build" first!\n';
+        logs.textContent += '\n⚠️ Replace the masked token with your actual API token.';
         
         btn.disabled = false;
         btn.textContent = 'Show Deploy Command';

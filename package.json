@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build",
+    "build": "[ -d src/admin.tmp ] && mv src/admin.tmp src/pages/admin; trap 'mv src/admin.tmp src/pages/admin 2>/dev/null || true' ERR; mv src/pages/admin src/admin.tmp; astro build && mv src/admin.tmp src/pages/admin",
     "preview": "astro preview"
   },
   "devDependencies": {
@@ -17,26 +17,8 @@
   },
   "dependencies": {
     "@astrojs/cloudflare": "^13.1.1",
-    "@astrojs/react": "^5.0.0",
     "@astrojs/tailwind": "^6.0.2",
-    "@codemirror/lang-css": "^6.3.1",
-    "@codemirror/lang-html": "^6.4.11",
-    "@codemirror/lang-json": "^6.0.2",
-    "@codemirror/state": "^6.6.0",
-    "@codemirror/view": "^6.40.0",
-    "@dnd-kit/core": "^6.3.1",
-    "@dnd-kit/sortable": "^10.0.0",
-    "@dnd-kit/utilities": "^3.2.2",
-    "@keystatic/astro": "^5.0.6",
-    "@keystatic/core": "^0.5.48",
-    "@keystatic/next": "^5.0.4",
     "astro": "^6.0.4",
-    "chroma-js": "^3.2.0",
-    "codemirror": "^6.0.2",
-    "keystatic": "^0.0.36",
-    "react": "^19.2.4",
-    "react-colorful": "^5.6.1",
-    "react-dom": "^19.2.4",
     "tailwindcss": "^4.2.1"
   }
 }

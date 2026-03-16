@@ -22,13 +22,23 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 .env.production.local
 .env.local
 
+# local config (contains secrets)
+.staticpress.json
+deploy-config.json
+staticpress-config.json
+*.secret
+*.key
+
 # caches
 .eslintcache
 .cache
 *.tsbuildinfo
+.astro
 
-# IntelliJ based IDEs
+# IDEs
 .idea
+.vscode
 
-# Finder (MacOS) folder config
+# OS
 .DS_Store
+Thumbs.db

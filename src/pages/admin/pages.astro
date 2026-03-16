@@ -92,6 +92,11 @@ const pageTitle = "Pages";
     <script is:inline>
       let pages = JSON.parse(localStorage.getItem('pages') || '[]');
       
+      function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+      }
+      
       function renderPages() {
         const container = document.getElementById('pages-list');
         if (pages.length === 0) {
@@ -100,7 +105,7 @@ const pageTitle = "Pages";
         }
         container.innerHTML = pages.map((page, i) => `
           <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 flex justify-between items-center">
-            <div><h3 class="font-semibold text-gray-900 dark:text-white">${page.title || 'Untitled'}</h3><p class="text-sm text-gray-500 dark:text-gray-400">/${page.slug}</p></div>
+            <div><h3 class="font-semibold text-gray-900 dark:text-white">${escapeHtml(page.title) || 'Untitled'}</h3><p class="text-sm text-gray-500 dark:text-gray-400">/${escapeHtml(page.slug)}</p></div>
             <div class="flex gap-2">
               <button onclick="editPage(${i})" class="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">Edit</button>
               <button onclick="deletePage(${i})" class="px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700">Delete</button>
