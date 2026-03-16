@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "astro dev",
-    "build": "mv src/pages/admin src/admin.tmp 2>/dev/null; astro build; mv src/admin.tmp src/pages/admin 2>/dev/null; true",
+    "build": "mv src/pages/admin src/admin.tmp 2>/dev/null && astro build && mv src/admin.tmp src/pages/admin 2>/dev/null",
     "preview": "astro preview"
   },
   "devDependencies": {

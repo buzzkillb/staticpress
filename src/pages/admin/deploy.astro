@@ -149,7 +149,7 @@ const pageTitle = "Deploy Settings";
           return;
         }
         
-        const config = { project, account };
+        const config = { project, token, account };
         const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -158,7 +158,7 @@ const pageTitle = "Deploy Settings";
         a.click();
         URL.revokeObjectURL(url);
         
-        document.getElementById('config-status').textContent = 'Config downloaded! Move this file to your project root and rename to .staticpress.json';
+        document.getElementById('config-status').textContent = 'Config downloaded! WARNING: Contains API token - keep file secure.';
       });
       
       document.getElementById('load-config').addEventListener('click', async () => {
@@ -177,8 +177,14 @@ const pageTitle = "Deploy Settings";
             
             localStorage.setItem('cf_project', config.project || '');
             localStorage.setItem('cf_account', config.account || '');
-            
-            document.getElementById('config-status').textContent = 'Config loaded! Token still needed - enter it below.';
+            if (config.token) {
+              localStorage.setItem('cf_token', config.token);
+              storedToken = config.token;
+              document.getElementById('cf-token').placeholder = maskToken(config.token);
+              document.getElementById('config-status').textContent = 'Config loaded with API token!';
+            } else {
+              document.getElementById('config-status').textContent = 'Config loaded! Token still needed - enter it below.';
+            }
           } catch (err) {
             alert('Invalid config file');
           }
