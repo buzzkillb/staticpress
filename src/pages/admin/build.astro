@@ -77,22 +77,13 @@ const pageTitle = "Build Site";
         btn.textContent = 'Building...';
         btn.classList.add('opacity-50');
         output.classList.remove('hidden');
-        logs.textContent = 'Building static site...\n';
         
-        try {
-          const res = await fetch('/api/build', { method: 'POST' });
-          const data = await res.json();
-          
-          if (data.success) {
-            logs.textContent += '\n✅ Build completed successfully!\n\n';
-            logs.textContent += 'Static files are in dist/ folder.\n';
-            logs.textContent += 'Go to Deploy Settings to deploy.';
-          } else {
-            logs.textContent += '\n❌ Build failed: ' + data.error;
-          }
-        } catch (err) {
-          logs.textContent += '\n❌ Error: ' + err.message;
-        }
+        logs.textContent = 'Building static site...\n\n';
+        logs.textContent += 'Click "Save & Build" below to save content and build.\n\n';
+        logs.textContent += 'OR open a new terminal and run:\n';
+        logs.textContent += '  bun run build\n';
+        logs.textContent += '  bun run preview\n\n';
+        logs.textContent += 'Then visit http://localhost:4321/ to preview.';
         
         btn.disabled = false;
         btn.textContent = 'Run Build';
