@@ -113,6 +113,7 @@ const pageTitle = "Deploy Settings";
       
       let storedToken = localStorage.getItem('cf_token');
       if (storedToken) {
+        document.getElementById('cf-token').value = storedToken;
         document.getElementById('cf-token').placeholder = maskToken(storedToken);
       }
       
