@@ -1,0 +1,151 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Welcome to StaticPress">
+  <style>
+    :root {
+      --color-primary: #3b82f6;
+      --color-background: #ffffff;
+      --color-text: #1f2937;
+      --color-secondary: #6b7280;
+    }
+    
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background-color: var(--color-background);
+      color: var(--color-text);
+      margin: 0;
+      line-height: 1.6;
+    }
+    
+    header {
+      padding: 1.5rem 2rem;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1rem;
+    }
+    
+    .logo {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: var(--color-primary);
+      text-decoration: none;
+    }
+    
+    nav a {
+      margin-left: 1.5rem;
+      color: var(--color-text);
+      text-decoration: none;
+    }
+    
+    nav a:hover {
+      color: var(--color-primary);
+    }
+    
+    main {
+      padding: 4rem 2rem;
+    }
+    
+    .hero {
+      text-align: center;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    
+    h1 {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      line-height: 1.2;
+    }
+    
+    .subtitle {
+      font-size: 1.25rem;
+      color: var(--color-secondary);
+      margin-bottom: 2rem;
+    }
+    
+    .btn {
+      display: inline-block;
+      padding: 0.75rem 1.5rem;
+      background: var(--color-primary);
+      color: white;
+      text-decoration: none;
+      border-radius: 0.5rem;
+      font-weight: 500;
+    }
+    
+    .btn:hover {
+      opacity: 0.9;
+    }
+    
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+      margin-top: 4rem;
+    }
+    
+    .feature {
+      padding: 1.5rem;
+      border: 1px solid #e5e7eb;
+      border-radius: 0.5rem;
+    }
+    
+    .feature h3 {
+      margin-top: 0;
+    }
+    
+    footer {
+      padding: 2rem;
+      text-align: center;
+      color: var(--color-secondary);
+      border-top: 1px solid #e5e7eb;
+    }
+  </style>
+  
+  <header>
+    <div class="container" style="display: flex; justify-content: space-between; align-items: center;">
+      <a href="/" class="logo">StaticPress</a>
+      <nav>
+        <a href="/admin">Admin</a>
+      </nav>
+    </div>
+  </header>
+  
+  <main>
+    <div class="hero">
+      <h1>Build Beautiful Static Sites</h1>
+      <p class="subtitle">
+        A WordPress-like experience for creating static websites. 
+        Edit content, customize themes, and deploy to Cloudflare Pages with one click.
+      </p>
+      <a href="/admin" class="btn">Get Started →</a>
+      
+      <div class="features">
+        <div class="feature">
+          <h3>Easy Content Management</h3>
+          <p>Create posts and pages with a familiar editor interface. Your content is stored as Markdown files.</p>
+        </div>
+        <div class="feature">
+          <h3>Visual Theme Builder</h3>
+          <p>Customize colors, fonts, and styling without touching code. Or dive into the code editor for full control.</p>
+        </div>
+        <div class="feature">
+          <h3>One-Click Deploy</h3>
+          <p>Build your site locally and deploy to Cloudflare Pages with a single click. Fast, secure, and free.</p>
+        </div>
+      </div>
+    </div>
+  </main>
+  
+  <footer>
+    <div class="container">
+      <p>Built with StaticPress</p>
+    </div>
+  </footer>
+</BaseLayout>

@@ -1,0 +1,226 @@
+---
+import '../../styles/global.css';
+const pageTitle = "Pages";
+---
+<!DOCTYPE html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{pageTitle} | StaticPress Admin</title>
+    <script is:inline>
+      if (localStorage.getItem('theme') === 'light') document.documentElement.classList.remove('dark');
+      else document.documentElement.classList.add('dark');
+    </script>
+  </head>
+  <body class="bg-gray-100 dark:bg-gray-900 transition-colors">
+    <div class="flex min-h-screen">
+      <aside class="w-64 bg-gray-900 dark:bg-black text-white fixed h-full border-r border-gray-800">
+        <div class="p-6 border-b border-gray-800"><h1 class="text-xl font-bold">StaticPress</h1><p class="text-xs text-gray-400 mt-1">Admin Panel</p></div>
+        <nav class="p-4 space-y-2">
+          <a href="/admin" class="block px-4 py-2 rounded hover:bg-gray-800 transition">Dashboard</a>
+          <div class="pt-4"><h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider px-4 mb-2">Content</h3>
+            <a href="/admin/posts" class="block px-4 py-2 rounded hover:bg-gray-800 transition">Posts</a>
+            <a href="/admin/pages" class="block px-4 py-2 rounded hover:bg-gray-800 transition">Pages</a>
+          </div>
+          <div class="pt-4"><h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider px-4 mb-2">Appearance</h3>
+            <a href="/admin/theme" class="block px-4 py-2 rounded hover:bg-gray-800 transition">Theme</a>
+            <a href="/admin/layout" class="block px-4 py-2 rounded hover:bg-gray-800 transition">Layout</a>
+          </div>
+          <div class="pt-4"><h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider px-4 mb-2">Publish</h3>
+            <a href="/admin/build" class="block px-4 py-2 rounded hover:bg-gray-800 transition">Build Site</a>
+            <a href="/admin/deploy" class="block px-4 py-2 rounded hover:bg-gray-800 transition">Deploy Settings</a>
+          </div>
+        </nav>
+        <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-800">
+          <button id="theme-toggle" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-400 hover:text-white transition w-full rounded hover:bg-gray-800">
+            <svg id="sun-icon" class="w-4 h-4 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+            <svg id="moon-icon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+            <span id="theme-text">Light Mode</span>
+          </button>
+          <a href="/" target="_blank" class="block px-4 py-2 text-sm text-gray-400 hover:text-white transition mt-2">View Site →</a>
+        </div>
+      </aside>
+      <main class="ml-64 flex-1 p-8">
+        <div class="max-w-6xl">
+          <div class="flex justify-between items-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Pages</h1>
+            <div class="flex gap-2">
+              <button id="export-pages-btn" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">Export All</button>
+              <button id="new-page-btn" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">+ New Page</button>
+            </div>
+          </div>
+          
+          <div id="pages-list" class="space-y-4 mb-8"></div>
+          
+          <div id="editor-panel" class="hidden">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+              <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4" id="editor-title">New Page</h2>
+              
+              <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Title</label>
+                <input type="text" id="page-title" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg" placeholder="Page title..." />
+              </div>
+              
+              <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Slug</label>
+                <input type="text" id="page-slug" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg" placeholder="page-url-slug" />
+              </div>
+              
+              <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Content (Markdown)</label>
+                <div class="flex gap-2 mb-2">
+                  <button type="button" class="px-2 py-1 text-xs bg-gray-200 dark:bg-gray-600 rounded" onclick="insertMd('**', '**')">Bold</button>
+                  <button type="button" class="px-2 py-1 text-xs bg-gray-200 dark:bg-gray-600 rounded" onclick="insertMd('*', '*')">Italic</button>
+                  <button type="button" class="px-2 py-1 text-xs bg-gray-200 dark:bg-gray-600 rounded" onclick="insertMd('# ', '')">H1</button>
+                  <button type="button" class="px-2 py-1 text-xs bg-gray-200 dark:bg-gray-600 rounded" onclick="insertMd('## ', '')">H2</button>
+                  <button type="button" class="px-2 py-1 text-xs bg-gray-200 dark:bg-gray-600 rounded" onclick="insertMd('[', '](url)')">Link</button>
+                </div>
+                <textarea id="page-content" rows="15" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg font-mono text-sm" placeholder="Write your page content in Markdown..."></textarea>
+              </div>
+              
+              <div class="flex gap-4">
+                <button id="save-page-btn" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Save Page</button>
+                <button id="cancel-edit-btn" class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition">Cancel</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+    
+    <script is:inline>
+      let pages = JSON.parse(localStorage.getItem('pages') || '[]');
+      
+      function renderPages() {
+        const container = document.getElementById('pages-list');
+        if (pages.length === 0) {
+          container.innerHTML = '<div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4"><p class="text-gray-500 dark:text-gray-400 text-center">No pages yet. Click "+ New Page" to create one.</p></div>';
+          return;
+        }
+        container.innerHTML = pages.map((page, i) => `
+          <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 flex justify-between items-center">
+            <div><h3 class="font-semibold text-gray-900 dark:text-white">${page.title || 'Untitled'}</h3><p class="text-sm text-gray-500 dark:text-gray-400">/${page.slug}</p></div>
+            <div class="flex gap-2">
+              <button onclick="editPage(${i})" class="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">Edit</button>
+              <button onclick="deletePage(${i})" class="px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700">Delete</button>
+            </div>
+          </div>
+        `).join('');
+      }
+      
+      function showEditor(page = null) {
+        document.getElementById('pages-list').classList.add('hidden');
+        document.getElementById('editor-panel').classList.remove('hidden');
+        document.getElementById('new-page-btn').classList.add('hidden');
+        
+        if (page) {
+          document.getElementById('editor-title').textContent = 'Edit Page';
+          document.getElementById('page-title').value = page.title || '';
+          document.getElementById('page-slug').value = page.slug || '';
+          document.getElementById('page-content').value = page.content || '';
+        } else {
+          document.getElementById('editor-title').textContent = 'New Page';
+          document.getElementById('page-title').value = '';
+          document.getElementById('page-slug').value = '';
+          document.getElementById('page-content').value = '';
+        }
+      }
+      
+      function hideEditor() {
+        document.getElementById('pages-list').classList.remove('hidden');
+        document.getElementById('editor-panel').classList.add('hidden');
+        document.getElementById('new-page-btn').classList.remove('hidden');
+      }
+      
+      function savePage() {
+        const title = document.getElementById('page-title').value;
+        const slug = document.getElementById('page-slug').value || title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+        const content = document.getElementById('page-content').value;
+        if (!title) { alert('Title is required!'); return; }
+        
+        const page = { title, slug, content };
+        const idx = document.getElementById('save-page-btn').dataset.editIndex;
+        if (idx !== undefined) pages[idx] = page;
+        else pages.push(page);
+        
+        localStorage.setItem('pages', JSON.stringify(pages));
+        
+        // Auto-export on save
+        const frontmatter = `---
+title: "${page.title}"
+---
+
+${page.content || ''}
+`;
+        const blob = new Blob([frontmatter], { type: 'text/markdown' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${page.slug}.md`;
+        a.click();
+        URL.revokeObjectURL(url);
+        
+        hideEditor();
+        renderPages();
+        alert(`Page saved! File "${page.slug}.md" downloaded. Move it to src/content/pages/ folder.`);
+      }
+      
+      window.editPage = function(i) { showEditor(pages[i]); document.getElementById('save-page-btn').dataset.editIndex = i; };
+      window.deletePage = function(i) { if (confirm('Delete this page?')) { pages.splice(i, 1); localStorage.setItem('pages', JSON.stringify(pages)); renderPages(); }};
+      window.insertMd = function(b, a) { const ta = document.getElementById('page-content'); const s = ta.selectionStart, e = ta.selectionEnd, t = ta.value; ta.value = t.substring(0, s) + b + t.substring(s, e) + a + t.substring(e); ta.focus(); };
+      
+      document.getElementById('new-page-btn').addEventListener('click', () => { delete document.getElementById('save-page-btn').dataset.editIndex; showEditor(); });
+      document.getElementById('cancel-edit-btn').addEventListener('click', hideEditor);
+      document.getElementById('save-page-btn').addEventListener('click', savePage);
+      document.getElementById('page-title').addEventListener('input', (e) => { document.getElementById('page-slug').value = e.target.value.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''); });
+      renderPages();
+      
+      document.getElementById('export-pages-btn').addEventListener('click', () => {
+        if (pages.length === 0) { alert('No pages to export!'); return; }
+        
+        let output = '';
+        pages.forEach(page => {
+          const frontmatter = `---
+title: "${page.title}"
+---
+
+`;
+          output += `<!-- ${page.slug}.md -->
+${frontmatter}${page.content || ''}
+
+
+
+
+`;
+        });
+        
+        const blob = new Blob([output], { type: 'text/markdown' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'pages-export.md';
+        a.click();
+        URL.revokeObjectURL(url);
+        alert('Pages exported! Copy the content to src/content/pages/ folder.');
+      });
+    </script>
+    
+    <script is:inline>
+      const toggle = document.getElementById('theme-toggle');
+      const sunIcon = document.getElementById('sun-icon'), moonIcon = document.getElementById('moon-icon'), themeText = document.getElementById('theme-text');
+      function updateIcons() {
+        const isDark = document.documentElement.classList.contains('dark');
+        if (isDark) { sunIcon.classList.remove('hidden'); moonIcon.classList.add('hidden'); themeText.textContent = 'Light Mode'; } 
+        else { sunIcon.classList.add('hidden'); moonIcon.classList.remove('hidden'); themeText.textContent = 'Dark Mode'; }
+      }
+      toggle?.addEventListener('click', () => {
+        const isDark = document.documentElement.classList.contains('dark');
+        if (isDark) { document.documentElement.classList.remove('dark'); localStorage.setItem('theme', 'light'); } 
+        else { document.documentElement.classList.add('dark'); localStorage.setItem('theme', 'dark'); }
+        updateIcons();
+      });
+      updateIcons();
+    </script>
+  </body>
+</html>

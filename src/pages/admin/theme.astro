@@ -1,0 +1,85 @@
+---
+import '../../styles/global.css';
+const pageTitle = "Theme";
+---
+<!DOCTYPE html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{pageTitle} | StaticPress Admin</title>
+    <script is:inline>
+      if (localStorage.getItem('theme') === 'light') document.documentElement.classList.remove('dark');
+      else document.documentElement.classList.add('dark');
+    </script>
+  </head>
+  <body class="bg-gray-100 dark:bg-gray-900 transition-colors">
+    <div class="flex min-h-screen">
+      <aside class="w-64 bg-gray-900 dark:bg-black text-white fixed h-full border-r border-gray-800">
+        <div class="p-6 border-b border-gray-800"><h1 class="text-xl font-bold">StaticPress</h1><p class="text-xs text-gray-400 mt-1">Admin Panel</p></div>
+        <nav class="p-4 space-y-2">
+          <a href="/admin" class="block px-4 py-2 rounded hover:bg-gray-800 transition">Dashboard</a>
+          <div class="pt-4"><h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider px-4 mb-2">Content</h3>
+            <a href="/admin/posts" class="block px-4 py-2 rounded hover:bg-gray-800 transition">Posts</a>
+            <a href="/admin/pages" class="block px-4 py-2 rounded hover:bg-gray-800 transition">Pages</a>
+          </div>
+          <div class="pt-4"><h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider px-4 mb-2">Appearance</h3>
+            <a href="/admin/theme" class="block px-4 py-2 rounded hover:bg-gray-800 transition">Theme</a>
+            <a href="/admin/layout" class="block px-4 py-2 rounded hover:bg-gray-800 transition">Layout</a>
+          </div>
+          <div class="pt-4"><h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider px-4 mb-2">Publish</h3>
+            <a href="/admin/build" class="block px-4 py-2 rounded hover:bg-gray-800 transition">Build Site</a>
+            <a href="/admin/deploy" class="block px-4 py-2 rounded hover:bg-gray-800 transition">Deploy Settings</a>
+          </div>
+        </nav>
+        <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-800">
+          <button id="theme-toggle" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-400 hover:text-white transition w-full rounded hover:bg-gray-800">
+            <svg id="sun-icon" class="w-4 h-4 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+            <svg id="moon-icon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+            <span id="theme-text">Light Mode</span>
+          </button>
+          <a href="/" target="_blank" class="block px-4 py-2 text-sm text-gray-400 hover:text-white transition mt-2">View Site →</a>
+        </div>
+      </aside>
+      <main class="ml-64 flex-1 p-8">
+        <div class="max-w-6xl">
+          <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-8">Theme Customization</h1>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <a href="/admin/theme/visual" class="block p-6 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition">
+              <div class="flex items-center gap-4">
+                <div class="p-3 bg-purple-100 dark:bg-purple-900 rounded-lg">
+                  <svg class="w-6 h-6 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"></path></svg>
+                </div>
+                <div><h3 class="font-semibold text-gray-900 dark:text-white">Visual Editor</h3><p class="text-sm text-gray-500 dark:text-gray-400">Pick colors, fonts with live preview</p></div>
+              </div>
+            </a>
+            <a href="/admin/theme/code" class="block p-6 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition">
+              <div class="flex items-center gap-4">
+                <div class="p-3 bg-green-100 dark:bg-green-900 rounded-lg">
+                  <svg class="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+                </div>
+                <div><h3 class="font-semibold text-gray-900 dark:text-white">Code Editor</h3><p class="text-sm text-gray-500 dark:text-gray-400">Edit CSS and templates directly</p></div>
+              </div>
+            </a>
+          </div>
+        </div>
+      </main>
+    </div>
+    <script is:inline>
+      const toggle = document.getElementById('theme-toggle');
+      const sunIcon = document.getElementById('sun-icon'), moonIcon = document.getElementById('moon-icon'), themeText = document.getElementById('theme-text');
+      function updateIcons() {
+        const isDark = document.documentElement.classList.contains('dark');
+        if (isDark) { sunIcon.classList.remove('hidden'); moonIcon.classList.add('hidden'); themeText.textContent = 'Light Mode'; } 
+        else { sunIcon.classList.add('hidden'); moonIcon.classList.remove('hidden'); themeText.textContent = 'Dark Mode'; }
+      }
+      toggle?.addEventListener('click', () => {
+        const isDark = document.documentElement.classList.contains('dark');
+        if (isDark) { document.documentElement.classList.remove('dark'); localStorage.setItem('theme', 'light'); } 
+        else { document.documentElement.classList.add('dark'); localStorage.setItem('theme', 'dark'); }
+        updateIcons();
+      });
+      updateIcons();
+    </script>
+  </body>
+</html>
