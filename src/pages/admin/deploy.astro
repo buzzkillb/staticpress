@@ -56,7 +56,7 @@ const pageTitle = "Deploy Settings";
               
               <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">API Token</label>
-                <input type="text" id="cf-token" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg" placeholder="toke****oken" />
+                <input type="password" id="cf-token" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg" placeholder="toke****oken" />
                 <p class="text-xs text-gray-500 mt-1">Token needs "Cloudflare Pages: Edit" permission</p>
               </div>
               
@@ -177,7 +177,7 @@ const pageTitle = "Deploy Settings";
       
       document.getElementById('deploy-btn').addEventListener('click', async () => {
         const project = localStorage.getItem('cf_project');
-        const token = document.getElementById('cf-token').value;
+        const token = localStorage.getItem('cf_token');
         const account = localStorage.getItem('cf_account');
         
         if (!project || !token || !account) {
