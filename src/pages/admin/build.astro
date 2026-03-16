@@ -77,24 +77,21 @@ const pageTitle = "Build Site";
         btn.textContent = 'Building...';
         btn.classList.add('opacity-50');
         output.classList.remove('hidden');
-        logs.textContent = 'Building static site...\n\n';
+        logs.textContent = 'Building static site...\n';
         
         try {
           const res = await fetch('/api/build', { method: 'POST' });
           const data = await res.json();
           
           if (data.success) {
-            logs.textContent += '✅ Build completed!\n\n';
-            logs.textContent += 'Static files in dist/ folder.\n';
-            logs.textContent += 'Go to Deploy Settings.';
+            logs.textContent += '\n✅ Build completed successfully!\n\n';
+            logs.textContent += 'Static files are in dist/ folder.\n';
+            logs.textContent += 'Go to Deploy Settings to deploy.';
           } else {
-            logs.textContent += '❌ Build failed: ' + data.error;
+            logs.textContent += '\n❌ Build failed: ' + data.error;
           }
         } catch (err) {
-          logs.textContent += '📦 Static build mode\n\n';
-          logs.textContent += 'Run this in a new terminal:\n\n';
-          logs.textContent += '  bun run build\n\n';
-          logs.textContent += 'This creates the dist/ folder with static files.';
+          logs.textContent += '\n❌ Error: ' + err.message;
         }
         
         btn.disabled = false;
