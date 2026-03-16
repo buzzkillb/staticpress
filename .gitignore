@@ -25,6 +25,7 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 # local config (contains secrets)
 .staticpress.json
 deploy-config.json
+staticpress-config.json
 *.secret
 *.key
 
