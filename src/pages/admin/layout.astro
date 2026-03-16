@@ -54,7 +54,7 @@ const pageTitle = "Layout";
       </main>
     </div>
     <script is:inline>
-      const sections = [
+      let sections = [
         { id: 'header', label: 'Header', visible: true },
         { id: 'hero', label: 'Hero Section', visible: true },
         { id: 'sidebar', label: 'Sidebar', visible: false },
@@ -72,10 +72,18 @@ const pageTitle = "Layout";
           });
         });
       }
+      const saved = localStorage.getItem('layout_sections');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          sections = sections.map(s => {
+            const savedSection = parsed.find(x => x.id === s.id);
+            return savedSection ? { ...s, visible: savedSection.visible } : s;
+          });
+        } catch (e) {}
+      }
       render();
       document.getElementById('save-layout')?.addEventListener('click', () => { localStorage.setItem('layout_sections', JSON.stringify(sections)); alert('Layout saved!'); });
-      const saved = localStorage.getItem('layout_sections');
-      if (saved) { Object.assign(sections, JSON.parse(saved)); render(); }
     </script>
     <script is:inline>
       const toggle = document.getElementById('theme-toggle');
