@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "astro dev",
-    "build": "[ -d src/admin.tmp ] && mv src/admin.tmp src/pages/admin; trap 'mv src/admin.tmp src/pages/admin 2>/dev/null || true' ERR; mv src/pages/admin src/admin.tmp; astro build && mv src/admin.tmp src/pages/admin",
+    "build": "astro build",
     "preview": "astro preview"
   },
   "devDependencies": {
