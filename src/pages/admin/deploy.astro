@@ -180,6 +180,7 @@ const pageTitle = "Deploy Settings";
             if (config.token) {
               localStorage.setItem('cf_token', config.token);
               storedToken = config.token;
+              document.getElementById('cf-token').value = config.token;
               document.getElementById('cf-token').placeholder = maskToken(config.token);
               document.getElementById('config-status').textContent = 'Config loaded with API token!';
             } else {
@@ -211,8 +212,9 @@ const pageTitle = "Deploy Settings";
         output.classList.remove('hidden');
         logs.textContent = 'Deploying to Cloudflare Pages...\n\n';
         logs.textContent += 'Run this command in your terminal:\n\n';
-        logs.textContent += `  CF_API_TOKEN=${token} \\\n  CF_ACCOUNT_ID=${account} \\\n  bunx wrangler pages deploy dist --project-name=${project}\n\n`;
-        logs.textContent += 'Make sure you have run "bun run build" first!';
+        logs.textContent += `  CF_API_TOKEN=${maskToken(token)} \\\n  CF_ACCOUNT_ID=${account} \\\n  bunx wrangler pages deploy dist --project-name=${project}\n\n`;
+        logs.textContent += 'Make sure you have run "bun run build" first!\n';
+        logs.textContent += '\n⚠️ Replace the masked token with your actual API token.';
         
         btn.disabled = false;
         btn.textContent = 'Show Deploy Command';

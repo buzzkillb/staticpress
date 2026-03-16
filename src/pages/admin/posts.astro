@@ -109,6 +109,11 @@ const pageTitle = "Posts";
     <script is:inline>
       let posts = JSON.parse(localStorage.getItem('posts') || '[]');
       
+      function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+      }
+      
       function renderPosts() {
         const container = document.getElementById('posts-list');
         if (posts.length === 0) {
@@ -118,8 +123,8 @@ const pageTitle = "Posts";
         container.innerHTML = posts.map((post, index) => `
           <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 flex justify-between items-center">
             <div>
-              <h3 class="font-semibold text-gray-900 dark:text-white">${post.title || 'Untitled'}</h3>
-              <p class="text-sm text-gray-500 dark:text-gray-400">${post.slug} • ${post.published ? 'Published' : 'Draft'}</p>
+              <h3 class="font-semibold text-gray-900 dark:text-white">${escapeHtml(post.title) || 'Untitled'}</h3>
+              <p class="text-sm text-gray-500 dark:text-gray-400">${escapeHtml(post.slug)} • ${post.published ? 'Published' : 'Draft'}</p>
             </div>
             <div class="flex gap-2">
               <button onclick="editPost(${index})" class="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">Edit</button>
