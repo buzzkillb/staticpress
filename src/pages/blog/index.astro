@@ -1,5 +1,11 @@
 ---
+import { getCollection } from 'astro:content';
 import '../../styles/global.css';
+
+const posts = await getCollection('posts');
+const publishedPosts = posts
+  .filter(post => post.data.published)
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 ---
 
 <!DOCTYPE html>
@@ -27,22 +33,36 @@ import '../../styles/global.css';
     <main class="max-w-4xl mx-auto px-4 py-8">
       <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-8">Blog</h1>
       
-      <div class="space-y-6">
-        <article class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-          <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-2">
-            <a href="/blog/welcome" class="hover:text-blue-600 dark:hover:text-blue-400">Welcome to StaticPress</a>
-          </h2>
-          <p class="text-gray-600 dark:text-gray-300 mb-4">Your first blog post with StaticPress</p>
-          <div class="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
-            <span>2026-03-15</span>
-            <span class="px-2 py-1 bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 rounded">Published</span>
-          </div>
-        </article>
-      </div>
+      {publishedPosts.length === 0 ? (
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-8 text-center">
+          <p class="text-gray-500 dark:text-gray-400">No posts yet. Create your first post in the admin panel!</p>
+        </div>
+      ) : (
+        <div class="space-y-6">
+          {publishedPosts.map(post => (
+            <article class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+              <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                <a href={`/blog/${post.id}`} class="hover:text-blue-600 dark:hover:text-blue-400">
+                  {post.data.title}
+                </a>
+              </h2>
+              {post.data.excerpt && (
+                <p class="text-gray-600 dark:text-gray-300 mb-4">{post.data.excerpt}</p>
+              )}
+              <div class="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
+                <time datetime={post.data.date.toISOString()}>
+                  {post.data.date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                </time>
+                <span class="px-2 py-1 bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 rounded">Published</span>
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
     </main>
     
     <footer class="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 mt-12">
-      <div class="max-w-4xl mx-auto px-4 py-6 text-center text-gray-600 dark:text-gray-400">
+      <div class="max-w-4xl mx-auto py-6 text-center text-gray-600 dark:text-gray-400">
         Built with StaticPress
       </div>
     </footer>
