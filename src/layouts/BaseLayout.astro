@@ -31,6 +31,18 @@ const { title, description = 'A static site built with StaticPress', image } = A
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
     {image && <meta name="twitter:image" content={image} />}
+    
+    <!-- Custom Theme CSS from Admin -->
+    <script is:inline>
+      (function() {
+        const themeCss = localStorage.getItem('theme_css');
+        if (themeCss) {
+          const style = document.createElement('style');
+          style.textContent = themeCss;
+          document.head.appendChild(style);
+        }
+      })();
+    </script>
   </head>
   <body>
     <slot />
