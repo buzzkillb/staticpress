@@ -746,11 +746,12 @@
       state.mode = mode;
       
       if (mode === 'markdown' && state.editor) {
-        // When switching to markdown, use the original content since we don't have
-        // a proper HTML->markdown converter. Visual edits are saved to currentItem on switch.
+        // When switching to markdown, use the currentItem content.
+        // Content from visual mode is DOMPurify-sanitized HTML (already escaped).
+        // Do NOT escape again as it would cause double-escaping.
         const mdContent = state.currentItem?.content || state.editor.getText();
         document.getElementById('editor-container').innerHTML = `
-          <textarea id="markdown-editor" class="w-full h-full p-4 bg-white dark:bg-gray-800 text-gray-900 dark:text-white font-mono text-sm resize-none border-0 outline-none" placeholder="Write markdown...">${escapeHtml(mdContent)}</textarea>
+          <textarea id="markdown-editor" class="w-full h-full p-4 bg-white dark:bg-gray-800 text-gray-900 dark:text-white font-mono text-sm resize-none border-0 outline-none" placeholder="Write markdown...">${mdContent}</textarea>
         `;
       } else if (mode === 'visual' && state.editor === null) {
         setTimeout(initTipTap, 0);
