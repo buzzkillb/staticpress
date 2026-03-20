@@ -295,6 +295,10 @@
     }
 
     function renderMediaLibrary() {
+      const safeMedia = state.media.filter(item => {
+        const url = item.url || '';
+        return url.startsWith('/') || url.startsWith('https://');
+      });
       return `
         <div class="p-8 flex-1 overflow-auto">
           <div class="flex justify-between items-center mb-6">
@@ -305,11 +309,11 @@
             </label>
           </div>
           <div class="grid grid-cols-4 gap-6">
-            ${state.media.length === 0 ? `
+            ${safeMedia.length === 0 ? `
               <div class="col-span-4 bg-white dark:bg-gray-800 rounded-lg p-8 text-center text-gray-500">
                 No media yet. Upload your first image!
               </div>
-            ` : state.media.map(item => `
+            ` : safeMedia.map(item => `
               <div class="bg-white dark:bg-gray-800 rounded-lg p-4">
                 <div class="aspect-square bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden mb-2">
                   <img src="${escapeHtml(item.url)}" alt="${escapeHtml(item.name)}" class="w-full h-full object-cover">
@@ -495,7 +499,7 @@
                 <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Preview</span>
               </div>
               ${state.previewMode === 'iframe' ? `
-                <iframe id="preview-iframe" class="preview-iframe" srcdoc="<html><body style='font-family:system-ui;padding:2rem;'><p class='text-gray-500'>Save to see preview...</p></body></html>"></iframe>
+                <iframe id="preview-iframe" class="preview-iframe" sandbox="allow-same-origin" srcdoc="<html><body style='font-family:system-ui;padding:2rem;'><p class='text-gray-500'>Save to see preview...</p></body></html>"></iframe>
               ` : `
                 <div id="preview-html" class="p-6 bg-white dark:bg-gray-800 min-h-[400px] overflow-auto prose dark:prose-invert max-w-none">
                   <p class="text-gray-500">Save to see preview...</p>

@@ -22,10 +22,10 @@ export function renderMarkdown(content: string): string {
   return purify.sanitize(html, {
     ALLOWED_TAGS: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'br', 'hr', 'ul', 'ol', 'li', 
                    'blockquote', 'pre', 'code', 'em', 'strong', 'a', 'img', 'table', 'thead', 
-                   'tbody', 'tr', 'th', 'td', 'div', 'span', 'style'],
+                   'tbody', 'tr', 'th', 'td', 'div', 'span'],
     ALLOWED_ATTR: ['href', 'src', 'alt', 'title', 'class', 'target', 'rel'],
-    FORBID_TAGS: ['script', 'iframe', 'object', 'embed', 'form', 'input'],
-    FORBID_ATTR: ['srcdoc', 'onerror', 'onload', 'onclick'],
+    FORBID_TAGS: ['script', 'iframe', 'object', 'embed', 'form', 'input', 'style'],
+    FORBID_ATTR: ['srcdoc', 'onerror', 'onload', 'onclick', 'style'],
   } as any) as unknown as string;
 }
 
@@ -63,29 +63,16 @@ export function extractFrontmatter(content: string): ParsedContent {
 }
 
 export function formatFrontmatter(data: Record<string, any>, body: string): string {
-  const lines: string[] = ['---'];
+  const cleanData: Record<string, any> = {};
   
   for (const [key, value] of Object.entries(data)) {
     if (value === undefined || value === null) continue;
-    
-    if (typeof value === 'boolean') {
-      lines.push(`${key}: ${value}`);
-    } else if (typeof value === 'number') {
-      lines.push(`${key}: ${value}`);
-    } else if (typeof value === 'string') {
-      // Escape special YAML characters and wrap in quotes
-      const escaped = value
-        .replace(/\\/g, '\\\\')
-        .replace(/"/g, '\\"')
-        .replace(/\n/g, '\\n')
-        .replace(/---/g, '\\-\\-\\-'); // Prevent YAML document separator injection
-      lines.push(`${key}: "${escaped}"`);
-    }
+    cleanData[key] = value;
   }
   
-  lines.push('---', '', body);
+  const yamlContent = yaml.dump(cleanData, { quotingType: '"', forceQuotes: true });
   
-  return lines.join('\n');
+  return `---\n${yamlContent}---\n\n${body}`;
 }
 
 export function slugify(text: string): string {

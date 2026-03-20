@@ -129,7 +129,7 @@ function getMediaFiles() {
   
   const files = readdirSync(MEDIA_DIR).filter((f: string) => {
     const ext = f.toLowerCase();
-    return ext.endsWith('.webp') || ext.endsWith('.avif') || ext.endsWith('.png') || ext.endsWith('.jpg') || ext.endsWith('.jpeg') || ext.endsWith('.gif') || ext.endsWith('.svg');
+    return ext.endsWith('.webp') || ext.endsWith('.avif') || ext.endsWith('.png') || ext.endsWith('.jpg') || ext.endsWith('.jpeg') || ext.endsWith('.gif');
   });
   
   const media = files.map((file: string) => {
@@ -388,6 +388,9 @@ async function handleAPI(url: URL, method: string, request: Request): Promise<Re
   const postMatch = pathname.match(/^\/api\/posts\/([^/]+)$/);
   if (postMatch && method === 'GET') {
     const slug = postMatch[1];
+    if (!/^[a-zA-Z0-9_-]+$/.test(slug)) {
+      return Response.json({ error: 'Invalid slug' }, { status: 400 });
+    }
     const filepath = join(POSTS_DIR, `${slug}.md`);
     if (existsSync(filepath)) {
       const content = readFileSync(filepath, 'utf-8');
@@ -399,6 +402,9 @@ async function handleAPI(url: URL, method: string, request: Request): Promise<Re
   
   if (postMatch && method === 'POST') {
     const slug = postMatch[1];
+    if (!/^[a-zA-Z0-9_-]+$/.test(slug)) {
+      return Response.json({ error: 'Invalid slug' }, { status: 400 });
+    }
     const body = await parseBody<any>(request);
     const success = writeContentFile('post', slug, body, body.content || '');
     if (success) {
@@ -409,6 +415,9 @@ async function handleAPI(url: URL, method: string, request: Request): Promise<Re
   
   if (postMatch && method === 'DELETE') {
     const slug = postMatch[1];
+    if (!/^[a-zA-Z0-9_-]+$/.test(slug)) {
+      return Response.json({ error: 'Invalid slug' }, { status: 400 });
+    }
     const success = deleteContentFile('post', slug);
     return Response.json({ success });
   }
@@ -421,6 +430,9 @@ async function handleAPI(url: URL, method: string, request: Request): Promise<Re
   const pageMatch = pathname.match(/^\/api\/pages\/([^/]+)$/);
   if (pageMatch && method === 'GET') {
     const slug = pageMatch[1];
+    if (!/^[a-zA-Z0-9_-]+$/.test(slug)) {
+      return Response.json({ error: 'Invalid slug' }, { status: 400 });
+    }
     const filepath = join(PAGES_DIR, `${slug}.md`);
     if (existsSync(filepath)) {
       const content = readFileSync(filepath, 'utf-8');
@@ -432,6 +444,9 @@ async function handleAPI(url: URL, method: string, request: Request): Promise<Re
   
   if (pageMatch && method === 'POST') {
     const slug = pageMatch[1];
+    if (!/^[a-zA-Z0-9_-]+$/.test(slug)) {
+      return Response.json({ error: 'Invalid slug' }, { status: 400 });
+    }
     const body = await parseBody<any>(request);
     const success = writeContentFile('page', slug, body, body.content || '');
     if (success) {
@@ -442,6 +457,9 @@ async function handleAPI(url: URL, method: string, request: Request): Promise<Re
   
   if (pageMatch && method === 'DELETE') {
     const slug = pageMatch[1];
+    if (!/^[a-zA-Z0-9_-]+$/.test(slug)) {
+      return Response.json({ error: 'Invalid slug' }, { status: 400 });
+    }
     const success = deleteContentFile('page', slug);
     return Response.json({ success });
   }

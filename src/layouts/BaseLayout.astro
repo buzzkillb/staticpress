@@ -44,14 +44,16 @@ const { title, description = `A static site built with ${SITE_NAME}`, image } = 
         // Apply custom theme CSS - only allow CSS custom properties for safety
         const themeCss = localStorage.getItem('theme_css');
         if (themeCss) {
-          // Only allow CSS custom properties (var(--xxx)) to prevent injection attacks
-          // Parse and extract only valid CSS variable declarations
+          // Only allow lines that are CSS custom properties with safe values
+          // Safe values: hex colors, rgb/rgba, hsl/hsla, numbers with optional units, named colors
           const lines = themeCss.split(';');
           const validVars = [];
           for (const line of lines) {
             const trimmed = line.trim();
-            // Only allow lines that are CSS custom properties
-            if (/^--[\w-]+:\s*[^;]+$/.test(trimmed)) {
+            // Only allow CSS custom properties with strict value validation
+            // Value must be: hex color, rgb/rgba, hsl/hsla, numbers, or safe keyword
+            const cssVarPattern = /^--([\w-]+):\s*(#[0-9a-fA-F]{3,8}|rgb\([^)]+\)|rgba\([^)]+\)|hsl\([^)]+\)|hsla\([^)]+\)|[\d.]+(?:px|em|rem|%|vh|vw)?|none|inherit|initial|unset)$/;
+            if (cssVarPattern.test(trimmed)) {
               validVars.push(trimmed);
             }
           }
