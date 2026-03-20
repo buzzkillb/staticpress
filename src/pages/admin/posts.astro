@@ -135,7 +135,9 @@ const pageTitle = "Posts";
           '',
         ];
         if (post.content) {
-          lines.push(...post.content.split('\n'));
+          // Escape any --- sequences that would prematurely end frontmatter
+          const escapedContent = post.content.replace(/^---$/gm, '\\-\\-\\-');
+          lines.push(...escapedContent.split('\n'));
         }
         return lines.join('\n');
       }

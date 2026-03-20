@@ -116,7 +116,9 @@ const pageTitle = "Pages";
           '',
         ];
         if (page.content) {
-          lines.push(...page.content.split('\n'));
+          // Escape any --- sequences that would prematurely end frontmatter
+          const escapedContent = page.content.replace(/^---$/gm, '\\-\\-\\-');
+          lines.push(...escapedContent.split('\n'));
         }
         return lines.join('\n');
       }
