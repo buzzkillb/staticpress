@@ -6,6 +6,7 @@
   <title>StaticPress Admin</title>
   <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
   <style>
     * { box-sizing: border-box; }
     body { font-family: system-ui, -apple-system, sans-serif; }
@@ -16,24 +17,47 @@
     .ProseMirror h1 { font-size: 2em; font-weight: bold; margin: 0.67em 0; }
     .ProseMirror h2 { font-size: 1.5em; font-weight: bold; margin: 0.83em 0; }
     .ProseMirror h3 { font-size: 1.17em; font-weight: bold; margin: 1em 0; }
+    .ProseMirror h4 { font-size: 1em; font-weight: bold; margin: 1.33em 0; }
     .ProseMirror ul { list-style-type: disc; padding-left: 2em; margin: 1em 0; }
     .ProseMirror ol { list-style-type: decimal; padding-left: 2em; margin: 1em 0; }
+    .ProseMirror li { margin: 0.25em 0; }
     .ProseMirror blockquote { border-left: 3px solid #d1d5db; padding-left: 1em; margin: 1em 0; color: #6b7280; }
-    .ProseMirror code { background: #f3f4f6; padding: 0.2em 0.4em; border-radius: 3px; font-family: monospace; }
-    .ProseMirror pre { background: #1f2937; color: #f3f4f6; padding: 1em; border-radius: 0.5em; overflow-x: auto; }
-    .ProseMirror pre code { background: none; padding: 0; }
+    .ProseMirror code { background: #f3f4f6; padding: 0.2em 0.4em; border-radius: 3px; font-family: monospace; font-size: 0.9em; }
+    .ProseMirror pre { background: #1f2937; color: #f3f4f6; padding: 1em; border-radius: 0.5em; overflow-x: auto; margin: 1em 0; }
+    .ProseMirror pre code { background: none; padding: 0; color: inherit; }
     .ProseMirror a { color: #3b82f6; text-decoration: underline; }
-    .ProseMirror img { max-width: 100%; height: auto; }
+    .ProseMirror img { max-width: 100%; height: auto; border-radius: 0.25rem; }
+    .ProseMirror hr { border: none; border-top: 2px solid #e5e7eb; margin: 2em 0; }
+    
+    /* Task lists */
+    .ProseMirror ul[data-type="taskList"] { list-style: none; padding-left: 0; }
+    .ProseMirror ul[data-type="taskList"] li { display: flex; align-items: flex-start; gap: 0.5rem; }
+    .ProseMirror ul[data-type="taskList"] li > label { flex-shrink: 0; margin-top: 0.25rem; }
+    .ProseMirror ul[data-type="taskList"] li > div { flex: 1; }
+    .ProseMirror ul[data-type="taskList"] input[type="checkbox"] { width: 1.1em; height: 1.1em; cursor: pointer; }
+    
+    /* Tables */
+    .ProseMirror table { border-collapse: collapse; width: 100%; margin: 1em 0; }
+    .ProseMirror table td, .ProseMirror table th { border: 1px solid #d1d5db; padding: 0.5em 1em; text-align: left; }
+    .ProseMirror table th { background: #f3f4f6; font-weight: bold; }
+    .ProseMirror table tr:hover { background: #f9fafb; }
+    
+    /* Syntax highlighting */
+    .ProseMirror .hljs { background: transparent; padding: 0; }
     
     /* Dark mode */
     .dark .ProseMirror { background: #1f2937; color: #f9fafb; }
-    .dark .ProseMirror h1, .dark .ProseMirror h2, .dark .ProseMirror h3 { color: #f9fafb; }
+    .dark .ProseMirror h1, .dark .ProseMirror h2, .dark .ProseMirror h3, .dark .ProseMirror h4 { color: #f9fafb; }
     .dark .ProseMirror blockquote { border-color: #4b5563; color: #9ca3af; }
     .dark .ProseMirror code { background: #374151; }
     .dark .ProseMirror pre { background: #111827; }
+    .dark .ProseMirror table td, .dark .ProseMirror table th { border-color: #4b5563; }
+    .dark .ProseMirror table th { background: #374151; }
+    .dark .ProseMirror table tr:hover { background: #374151; }
+    .dark .ProseMirror hr { border-color: #4b5563; }
     
     /* Split pane */
-    .split-pane { display: flex; height: calc(100vh - 140px); }
+    .split-pane { display: flex; height: calc(100vh - 180px); }
     .split-pane > div { flex: 1; overflow: auto; }
     .split-pane .divider { width: 4px; background: #e5e7eb; cursor: col-resize; }
     .dark .split-pane .divider { background: #374151; }
@@ -54,18 +78,37 @@
     .toast.success { background: #10b981; }
     .toast.error { background: #ef4444; }
     .toast.info { background: #3b82f6; }
+    
+    /* Toolbar */
+    .toolbar-btn { padding: 0.4rem 0.6rem; border-radius: 0.375rem; background: transparent; border: 1px solid transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+    .toolbar-btn:hover { background: #e5e7eb; }
+    .dark .toolbar-btn:hover { background: #4b5563; }
+    .toolbar-btn.active { background: #3b82f6; color: white; }
+    .toolbar-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    
+    /* Media modal */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; display: flex; align-items: center; justify-content: center; }
+    .modal-content { background: white; border-radius: 0.5rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); max-width: 64rem; width: 100%; max-height: 80vh; overflow: hidden; }
+    .dark .modal-content { background: #1f2937; }
+    .media-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1rem; padding: 1rem; }
+    .media-item { border: 2px solid #e5e7eb; border-radius: 0.5rem; overflow: hidden; cursor: pointer; transition: all 0.15s; }
+    .dark .media-item { border-color: #374151; }
+    .dark .media-item-info { color: #9ca3af; }
+    .media-item:hover { border-color: #3b82f6; }
+    .media-item img { width: 100%; aspect-ratio: 1; object-fit: cover; }
+    .media-item-info { padding: 0.5rem; font-size: 0.75rem; color: #6b7280; }
   </style>
 </head>
 <body class="bg-gray-100 dark:bg-gray-900">
   <div id="app"></div>
-  
   <div id="toast" class="toast"></div>
+  <div id="modal-container"></div>
 
   <script type="module">
-    // State
     const state = {
       posts: [],
       pages: [],
+      media: [],
       currentView: 'posts',
       currentItem: null,
       editor: null,
@@ -73,18 +116,33 @@
       previewMode: 'split',
       theme: localStorage.getItem('theme') || 'dark',
       loading: false,
+      mediaModalOpen: false,
     };
 
-    // API helpers
     async function api(endpoint, options = {}) {
       const res = await fetch(`/api${endpoint}`, {
         headers: { 'Content-Type': 'application/json' },
         ...options,
       });
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || `API error: ${res.status}`);
+      }
       return res.json();
     }
 
-    // Toast notifications
+    async function apiForm(endpoint, formData) {
+      const res = await fetch(`/api${endpoint}`, {
+        method: 'POST',
+        body: formData,
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        throw new Error(json.error || `Upload failed: ${res.status}`);
+      }
+      return json;
+    }
+
     function showToast(message, type = 'info') {
       const toast = document.getElementById('toast');
       toast.textContent = message;
@@ -92,18 +150,15 @@
       setTimeout(() => toast.classList.remove('show'), 3000);
     }
 
-    // Theme
     function applyTheme() {
       document.documentElement.classList.toggle('dark', state.theme === 'dark');
     }
 
-    // Render app
     function render() {
       applyTheme();
       const app = document.getElementById('app');
       app.innerHTML = `
         <div class="flex h-screen">
-          <!-- Sidebar -->
           <aside class="w-64 bg-gray-900 dark:bg-black text-white flex flex-col">
             <div class="p-6 border-b border-gray-800">
               <h1 class="text-xl font-bold">StaticPress</h1>
@@ -115,6 +170,9 @@
               </button>
               <button onclick="navigate('pages')" class="w-full text-left px-4 py-2 rounded hover:bg-gray-800 ${state.currentView === 'pages' ? 'bg-gray-800' : ''}">
                 📄 Pages
+              </button>
+              <button onclick="openMediaModal()" class="w-full text-left px-4 py-2 rounded hover:bg-gray-800 ${state.currentView === 'media' ? 'bg-gray-800' : ''}">
+                🖼️ Media
               </button>
               <div class="pt-4 border-t border-gray-800 mt-4">
                 <p class="text-xs text-gray-500 uppercase px-4 mb-2">Publish</p>
@@ -136,7 +194,6 @@
             </div>
           </aside>
           
-          <!-- Main Content -->
           <main class="flex-1 flex flex-col overflow-hidden">
             ${renderMain()}
           </main>
@@ -146,19 +203,19 @@
       if (state.currentItem !== null) {
         initEditor();
       }
+      
+      if (state.mediaModalOpen) {
+        renderMediaModal();
+      }
     }
 
     function renderMain() {
       if (state.currentItem !== null) {
         return renderEditor();
       }
-      
-      if (state.currentView === 'posts') {
-        return renderList('posts', state.posts);
-      }
-      if (state.currentView === 'pages') {
-        return renderList('pages', state.pages);
-      }
+      if (state.currentView === 'posts') return renderList('posts', state.posts);
+      if (state.currentView === 'pages') return renderList('pages', state.pages);
+      if (state.currentView === 'media') return renderMediaLibrary();
       return renderDashboard();
     }
 
@@ -176,8 +233,8 @@
               <p class="text-3xl font-bold text-green-600">${state.pages.length}</p>
             </div>
             <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-              <h3 class="font-semibold text-gray-900 dark:text-white">🚀 Ready</h3>
-              <p class="text-3xl font-bold text-purple-600">Build</p>
+              <h3 class="font-semibold text-gray-900 dark:text-white">🖼️ Media</h3>
+              <p class="text-3xl font-bold text-purple-600">${state.media.length}</p>
             </div>
           </div>
         </div>
@@ -215,6 +272,39 @@
       `;
     }
 
+    function renderMediaLibrary() {
+      return `
+        <div class="p-8 flex-1 overflow-auto">
+          <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Media Library</h1>
+            <label class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer">
+              + Upload Image
+              <input type="file" accept="image/*" onchange="uploadMedia(this.files)" class="hidden" multiple>
+            </label>
+          </div>
+          <div class="grid grid-cols-4 gap-6">
+            ${state.media.length === 0 ? `
+              <div class="col-span-4 bg-white dark:bg-gray-800 rounded-lg p-8 text-center text-gray-500">
+                No media yet. Upload your first image!
+              </div>
+            ` : state.media.map(item => `
+              <div class="bg-white dark:bg-gray-800 rounded-lg p-4">
+                <div class="aspect-square bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden mb-2">
+                  <img src="${escapeHtml(item.url)}" alt="${escapeHtml(item.name)}" class="w-full h-full object-cover">
+                </div>
+                <p class="text-sm text-gray-900 dark:text-white truncate">${escapeHtml(item.name)}</p>
+                <p class="text-xs text-gray-500">${item.size}</p>
+                <div class="flex gap-2 mt-2">
+                  <button onclick="copyMediaUrl('${escapeHtml(item.url)}')" class="flex-1 px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded text-xs hover:bg-gray-300 dark:hover:bg-gray-600">Copy URL</button>
+                  <button onclick="deleteMedia('${escapeHtml(item.name)}')" class="flex-1 px-2 py-1 bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-300 rounded text-xs hover:bg-red-200 dark:hover:bg-red-800">Delete</button>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
     function renderEditor() {
       const item = state.currentItem;
       return `
@@ -236,7 +326,6 @@
           </div>
         </div>
         
-        <!-- Frontmatter -->
         <div class="p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
           <div class="grid grid-cols-4 gap-4">
             <div>
@@ -266,15 +355,40 @@
           </div>
         </div>
         
-        <!-- Editor/Preview -->
         <div class="split-pane ${state.previewMode === 'iframe' || state.previewMode === 'rendered' ? 'flex-col' : ''}">
           ${state.previewMode !== 'iframe' ? `
-            <div class="border-r border-gray-200 dark:border-gray-700">
-              <div class="p-2 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 flex gap-2">
+            <div class="border-r border-gray-200 dark:border-gray-700 flex flex-col">
+              <div class="p-2 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 flex items-center gap-1 flex-wrap">
                 <button onclick="setMode('visual')" class="px-3 py-1 rounded ${state.mode === 'visual' ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-gray-700'}">Visual</button>
                 <button onclick="setMode('markdown')" class="px-3 py-1 rounded ${state.mode === 'markdown' ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-gray-700'}">Markdown</button>
+                <div class="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-2"></div>
+                ${state.mode === 'visual' ? `
+                  <button onclick="format('bold')" class="toolbar-btn" title="Bold"><b>B</b></button>
+                  <button onclick="format('italic')" class="toolbar-btn" title="Italic"><i>I</i></button>
+                  <button onclick="format('strike')" class="toolbar-btn" title="Strikethrough"><s>S</s></button>
+                  <button onclick="format('code')" class="toolbar-btn" title="Inline Code"><code>&lt;&gt;</code></button>
+                  <div class="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-2"></div>
+                  <button onclick="format('heading', { level: 1 })" class="toolbar-btn" title="Heading 1">H1</button>
+                  <button onclick="format('heading', { level: 2 })" class="toolbar-btn" title="Heading 2">H2</button>
+                  <button onclick="format('heading', { level: 3 })" class="toolbar-btn" title="Heading 3">H3</button>
+                  <div class="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-2"></div>
+                  <button onclick="format('bulletList')" class="toolbar-btn" title="Bullet List">• List</button>
+                  <button onclick="format('orderedList')" class="toolbar-btn" title="Numbered List">1. List</button>
+                  <button onclick="format('taskList')" class="toolbar-btn" title="Task List">☐ Task</button>
+                  <div class="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-2"></div>
+                  <button onclick="format('blockquote')" class="toolbar-btn" title="Quote">❝</button>
+                  <button onclick="format('codeBlock')" class="toolbar-btn" title="Code Block">{ }</button>
+                  <button onclick="format('hr')" class="toolbar-btn" title="Horizontal Rule">—</button>
+                  <div class="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-2"></div>
+                  <button onclick="format('link')" class="toolbar-btn" title="Link">🔗</button>
+                  <button onclick="openMediaModal()" class="toolbar-btn" title="Insert Image">🖼️</button>
+                  <button onclick="format('table')" class="toolbar-btn" title="Table">⊞</button>
+                  <div class="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-2"></div>
+                  <button onclick="format('undo')" class="toolbar-btn" title="Undo">↩</button>
+                  <button onclick="format('redo')" class="toolbar-btn" title="Redo">↪</button>
+                ` : ''}
               </div>
-              <div id="editor-container">
+              <div id="editor-container" class="flex-1 overflow-auto">
                 ${state.mode === 'visual' ? `
                   <div id="tiptap-editor" class="ProseMirror bg-white dark:bg-gray-800 min-h-[400px]"></div>
                 ` : `
@@ -313,11 +427,117 @@
       `;
     }
 
-    // Navigation
+    function renderMediaModal() {
+      const container = document.getElementById('modal-container');
+      container.innerHTML = `
+        <div class="modal-overlay" onclick="closeMediaModal(event)">
+          <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+              <h2 class="text-xl font-bold text-gray-900 dark:text-white">Media Library</h2>
+              <button onclick="closeMediaModal()" class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 text-2xl">&times;</button>
+            </div>
+            <div class="p-4 border-b border-gray-200 dark:border-gray-700">
+              <label class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer inline-block">
+                + Upload Image
+                <input type="file" accept="image/*" onchange="uploadMedia(this.files)" class="hidden" multiple>
+              </label>
+            </div>
+            <div class="media-grid max-h-[400px] overflow-auto">
+              ${state.media.length === 0 ? `
+                <div class="col-span-4 text-center text-gray-500 py-8">No media yet. Upload your first image!</div>
+              ` : state.media.map(item => `
+                <div class="media-item" onclick="insertMedia('${escapeHtml(item.url)}')">
+                  <img src="${escapeHtml(item.url)}" alt="${escapeHtml(item.name)}">
+                  <div class="media-item-info">${escapeHtml(item.name)}</div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    window.insertMedia = function(url) {
+      if (state.editor) {
+        state.editor.chain().focus().setImage({ src: url }).run();
+      }
+      closeMediaModal();
+    };
+
+    window.openMediaModal = function() {
+      state.mediaModalOpen = true;
+      render();
+    };
+
+    window.closeMediaModal = function(event) {
+      if (event && event.target !== event.currentTarget) return;
+      state.mediaModalOpen = false;
+      render();
+    };
+
+    window.copyMediaUrl = async function(url) {
+      try {
+        await navigator.clipboard.writeText(window.location.origin + url);
+        showToast('URL copied to clipboard!', 'success');
+      } catch (e) {
+        showToast('Failed to copy URL', 'error');
+      }
+    };
+
+    window.uploadMedia = async function(files) {
+      if (!files || files.length === 0) return;
+      
+      for (const file of files) {
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        try {
+          showToast(`Uploading ${file.name}...`, 'info');
+          const result = await apiForm('/media/upload', formData);
+          if (result.success) {
+            showToast(`${file.name} uploaded!`, 'success');
+          } else {
+            showToast(`Failed to upload ${file.name}`, 'error');
+          }
+        } catch (e) {
+          showToast(`Error uploading ${file.name}`, 'error');
+        }
+      }
+      
+      await loadMedia();
+      render();
+    };
+
+    window.deleteMedia = async function(filename) {
+      if (!confirm(`Delete ${filename}?`)) return;
+      
+      try {
+        const result = await api(`/media/${encodeURIComponent(filename)}`, { method: 'DELETE' });
+        if (result.success) {
+          showToast('Media deleted', 'success');
+          await loadMedia();
+          render();
+        } else {
+          showToast('Failed to delete media', 'error');
+        }
+      } catch (e) {
+        showToast('Error deleting media', 'error');
+      }
+    };
+
+    async function loadMedia() {
+      try {
+        state.media = await api('/media');
+      } catch (e) {
+        state.media = [];
+      }
+    }
+
     window.navigate = async function(view) {
       state.currentView = view;
       state.currentItem = null;
       await loadContent();
+      if (view === 'media') await loadMedia();
       render();
     };
 
@@ -327,18 +547,15 @@
       render();
     };
 
-    // Load content
     async function loadContent() {
       try {
         state.posts = await api('/posts');
         state.pages = await api('/pages');
       } catch (e) {
-        console.error('Failed to load content:', e);
         showToast('Failed to load content', 'error');
       }
     }
 
-    // Create new
     window.createNew = function(type) {
       const slug = `new-${type}-${Date.now()}`;
       state.currentItem = {
@@ -354,7 +571,6 @@
       render();
     };
 
-    // Edit item
     window.editItem = async function(type, slug) {
       try {
         const item = await api(`/${type}/${slug}`);
@@ -366,7 +582,6 @@
       }
     };
 
-    // Delete item
     window.deleteItem = async function(type, slug) {
       if (!confirm(`Delete ${slug}?`)) return;
       try {
@@ -379,7 +594,6 @@
       }
     };
 
-    // Save item
     window.saveItem = async function() {
       const item = state.currentItem;
       const data = {
@@ -416,32 +630,58 @@
       }
     };
 
-    // Editor mode
     window.setMode = function(mode) {
       if (state.mode === mode) return;
       state.mode = mode;
       
       if (mode === 'markdown' && state.editor) {
-        // Save HTML content to markdown before switching
-        const mdContent = state.editor.storage.markdown?.getMarkdown?.() || state.editor.getText();
+        // When switching to markdown, use the original content since we don't have
+        // a proper HTML->markdown converter. Visual edits are saved to currentItem on switch.
+        const mdContent = state.currentItem?.content || state.editor.getText();
         document.getElementById('editor-container').innerHTML = `
           <textarea id="markdown-editor" class="w-full h-full p-4 bg-white dark:bg-gray-800 text-gray-900 dark:text-white font-mono text-sm resize-none border-0 outline-none" placeholder="Write markdown...">${escapeHtml(mdContent)}</textarea>
         `;
       } else if (mode === 'visual' && state.editor === null) {
-        // Will init TipTap after render
         setTimeout(initTipTap, 0);
       }
       
       render();
     };
 
-    // Preview mode
     window.setPreviewMode = function(mode) {
       state.previewMode = mode;
       render();
     };
 
-    // Init TipTap
+    window.format = function(type, options = {}) {
+      if (!state.editor) return;
+      
+      const chain = state.editor.chain().focus();
+      
+      switch (type) {
+        case 'bold': chain.toggleBold().run(); break;
+        case 'italic': chain.toggleItalic().run(); break;
+        case 'strike': chain.toggleStrike().run(); break;
+        case 'code': chain.toggleCode().run(); break;
+        case 'heading': chain.toggleHeading({ level: options.level || 1 }).run(); break;
+        case 'bulletList': chain.toggleBulletList().run(); break;
+        case 'orderedList': chain.toggleOrderedList().run(); break;
+        case 'taskList': chain.toggleTaskList().run(); break;
+        case 'blockquote': chain.toggleBlockquote().run(); break;
+        case 'codeBlock': chain.toggleCodeBlock().run(); break;
+        case 'hr': chain.setHorizontalRule().run(); break;
+        case 'link':
+          const url = prompt('Enter URL:');
+          if (url) chain.setLink({ href: url }).run();
+          break;
+        case 'table':
+          chain.insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
+          break;
+        case 'undo': chain.undo().run(); break;
+        case 'redo': chain.redo().run(); break;
+      }
+    };
+
     async function initTipTap() {
       if (state.mode !== 'visual') return;
       
@@ -449,18 +689,27 @@
       const { StarterKit } = await import('https://unpkg.com/@tiptap/starter-kit@2.1.0/dist/bundle.esm.js?raw');
       const { Placeholder } = await import('https://unpkg.com/@tiptap/extension-placeholder@2.1.0/dist/bundle.esm.js?raw');
       const { Link } = await import('https://unpkg.com/@tiptap/extension-link@2.1.0/dist/bundle.esm.js?raw');
+      const { Image } = await import('https://unpkg.com/@tiptap/extension-image@2.1.0/dist/bundle.esm.js?raw');
+      const { TaskList } = await import('https://unpkg.com/@tiptap/extension-task-list@2.1.0/dist/bundle.esm.js?raw');
+      const { TaskItem } = await import('https://unpkg.com/@tiptap/extension-task-item@2.1.0/dist/bundle.esm.js?raw');
+      const { Table } = await import('https://unpkg.com/@tiptap/extension-table@2.1.0/dist/bundle.esm.js?raw');
+      const { TableRow } = await import('https://unpkg.com/@tiptap/extension-table-row@2.1.0/dist/bundle.esm.js?raw');
+      const { TableHeader } = await import('https://unpkg.com/@tiptap/extension-table-header@2.1.0/dist/bundle.esm.js?raw');
+      const { TableCell } = await import('https://unpkg.com/@tiptap/extension-table-cell@2.1.0/dist/bundle.esm.js?raw');
+      const { CodeBlockLowlight } = await import('https://unpkg.com/@tiptap/extension-code-block-lowlight@2.1.0/dist/bundle.esm.js?raw');
+      const { createLowlight, common } = await import('https://unpkg.com/lowlight@2.9.0/dist/bundle.esm.js?raw');
       
       const element = document.getElementById('tiptap-editor');
       if (!element) return;
       
-      // Always sanitize content through the server's render API for safety
+      const lowlight = createLowlight(common);
+      
       let content = state.currentItem?.content || '';
       try {
         const result = await api('/render', {
           method: 'POST',
           body: JSON.stringify({ content }),
         });
-        // TipTap needs HTML, so use sanitized HTML
         content = result.html || '';
       } catch (e) {
         content = '';
@@ -469,25 +718,32 @@
       state.editor = new Editor({
         element,
         extensions: [
-          StarterKit,
+          StarterKit.configure({
+            codeBlock: false,
+          }),
           Placeholder.configure({ placeholder: 'Start writing...' }),
           Link.configure({ openOnClick: false }),
+          Image,
+          TaskList,
+          TaskItem.configure({ nested: true }),
+          Table.configure({ resizable: true }),
+          TableRow,
+          TableHeader,
+          TableCell,
+          CodeBlockLowlight.configure({ lowlight }),
         ],
         content,
         onUpdate: ({ editor }) => {
-          // Get markdown from TipTap and re-sanitize for preview
           const md = editor.storage.markdown?.getMarkdown?.() || editor.getText();
           updatePreview(md);
         },
       });
     }
 
-    // Also init TipTap if we're in visual mode
     window.initEditor = function() {
       if (state.mode === 'visual' && !state.editor) {
         setTimeout(initTipTap, 0);
       } else if (state.mode === 'markdown') {
-        // Add input listener for markdown
         setTimeout(() => {
           const ta = document.getElementById('markdown-editor');
           if (ta) {
@@ -497,7 +753,6 @@
       }
     };
 
-    // Update preview
     async function updatePreview(content) {
       if (state.previewMode === 'split') {
         const previewEl = document.getElementById('preview-html');
@@ -520,7 +775,7 @@
               method: 'POST',
               body: JSON.stringify({ content }),
             });
-            const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{font-family:system-ui;padding:2rem;max-width:800px;margin:0 auto;background:#fff;color:#1f2937}@media(prefers-color-scheme:dark){body{background:#111827;color:#f9fafb}}</style></head><body>${result.html}</body></html>`;
+            const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css"><style>body{font-family:system-ui;padding:2rem;max-width:800px;margin:0 auto;background:#fff;color:#1f2937}@media(prefers-color-scheme:dark){body{background:#111827;color:#f9fafb}}pre{background:#1f2937;color:#f3f4f6;padding:1em;border-radius:0.5em;overflow-x:auto}code{background:#f3f4f6;padding:0.2em 0.4em;border-radius:3px}pre code{background:none;padding:0}</style></head><body>${result.html}</body></html>`;
             iframe.srcdoc = html;
           } catch (e) {}
         }
@@ -538,7 +793,6 @@
       }
     }
 
-    // Build
     window.runBuild = async function() {
       if (!confirm('Run build? This will generate static files in dist/')) return;
       showToast('Building...', 'info');
@@ -554,7 +808,6 @@
       }
     };
 
-    // Deploy
     window.runDeploy = async function() {
       if (!confirm('Deploy to Cloudflare Pages? Make sure you have configured your Cloudflare settings.')) return;
       showToast('Deploying...', 'info');
@@ -570,7 +823,6 @@
       }
     };
 
-    // Theme toggle
     window.toggleTheme = function() {
       state.theme = state.theme === 'dark' ? 'light' : 'dark';
       localStorage.setItem('theme', state.theme);
@@ -578,7 +830,6 @@
       render();
     };
 
-    // Utilities
     function escapeHtml(str) {
       if (!str) return '';
       return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -588,12 +839,10 @@
       return text.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').trim();
     }
 
-    // Auto-slug from title
     document.addEventListener('input', (e) => {
       if (e.target.id === 'item-title' && !state.currentItem?.slug.startsWith('new-')) return;
       const slugInput = document.getElementById('item-slug');
       if (slugInput && e.target.id === 'item-title') {
-        // Only auto-update if slug hasn't been manually edited
         if (!slugInput.dataset.manual) {
           slugInput.value = slugify(e.target.value);
         }
@@ -606,8 +855,7 @@
       }
     });
 
-    // Init
-    loadContent().then(render);
+    loadContent().then(() => loadMedia()).then(render);
   </script>
 </body>
 </html>

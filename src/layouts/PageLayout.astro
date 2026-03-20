@@ -1,0 +1,103 @@
+---
+import BaseLayout from './BaseLayout.astro';
+
+interface Props {
+  title: string;
+  description?: string;
+  image?: string;
+  showNav?: boolean;
+}
+
+const { title, description, image, showNav = true } = Astro.props;
+---
+
+<BaseLayout title={title} description={description} image={image}>
+  <style>
+    :root {
+      --color-primary: #3b82f6;
+      --color-background: #ffffff;
+      --color-text: #1f2937;
+      --color-secondary: #6b7280;
+    }
+    
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background-color: var(--color-background);
+      color: var(--color-text);
+      margin: 0;
+      line-height: 1.6;
+    }
+    
+    header {
+      padding: 1.5rem 2rem;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1rem;
+    }
+    
+    .logo {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: var(--color-primary);
+      text-decoration: none;
+    }
+    
+    nav a {
+      margin-left: 1.5rem;
+      color: var(--color-text);
+      text-decoration: none;
+    }
+    
+    nav a:hover {
+      color: var(--color-primary);
+    }
+    
+    main {
+      padding: 4rem 2rem;
+      min-height: calc(100vh - 200px);
+    }
+    
+    footer {
+      padding: 2rem;
+      text-align: center;
+      color: var(--color-secondary);
+      border-top: 1px solid #e5e7eb;
+    }
+    
+    footer a {
+      color: var(--color-primary);
+      text-decoration: none;
+    }
+    
+    footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+  
+  {showNav && (
+    <header>
+      <div class="container" style="display: flex; justify-content: space-between; align-items: center;">
+        <a href="/" class="logo">StaticPress</a>
+        <nav>
+          <a href="/blog">Blog</a>
+          <a href="/about">About</a>
+          <a href="/contact">Contact</a>
+        </nav>
+      </div>
+    </header>
+  )}
+  
+  <main>
+    <slot />
+  </main>
+  
+  <footer>
+    <div class="container">
+      <p>&copy; {new Date().getFullYear()} Your Site. Built with <a href="https://github.com/buzzkillb/staticpress">StaticPress</a></p>
+    </div>
+  </footer>
+</BaseLayout>
