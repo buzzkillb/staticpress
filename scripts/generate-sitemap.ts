@@ -30,7 +30,7 @@ function extractFrontmatter(content: string): { data: Record<string, unknown>; b
   const body = match[2] || '';
 
   try {
-    const data = yaml.load(frontmatterStr) as Record<string, unknown> || {};
+    const data = yaml.load(frontmatterStr, { schema: yaml.JSON_SCHEMA }) as Record<string, unknown> || {};
     return { data, body };
   } catch (e) {
     return { data: {}, body };
@@ -38,9 +38,10 @@ function extractFrontmatter(content: string): { data: Record<string, unknown>; b
 }
 
 function generateSitemap() {
+  const safeUrl = escapeXml(siteUrl);
   const urls: string[] = [
-    `<url><loc>${siteUrl}/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>`,
-    `<url><loc>${siteUrl}/blog/</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>`,
+    `<url><loc>${safeUrl}/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>`,
+    `<url><loc>${safeUrl}/blog/</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>`,
   ];
 
   if (existsSync(POSTS_DIR)) {
@@ -52,7 +53,7 @@ function generateSitemap() {
         if (data.published !== false) {
           const slug = escapeXml(file.replace('.md', ''));
           const lastmod = data.date ? new Date(data.date as string).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
-          urls.push(`<url><loc>${siteUrl}/blog/${slug}/</loc><lastmod>${lastmod}</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>`);
+          urls.push(`<url><loc>${safeUrl}/blog/${slug}/</loc><lastmod>${lastmod}</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>`);
         }
       } catch (e) {}
     }
@@ -66,7 +67,7 @@ function generateSitemap() {
         const { data } = extractFrontmatter(content);
         if (data.published !== false) {
           const slug = escapeXml(file.replace('.md', ''));
-          urls.push(`<url><loc>${siteUrl}/${slug}/</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>`);
+          urls.push(`<url><loc>${safeUrl}/${slug}/</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>`);
         }
       } catch (e) {}
     }

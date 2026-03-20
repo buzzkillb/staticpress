@@ -566,9 +566,9 @@ async function handleAPI(url: URL, method: string, request: Request): Promise<Re
 
 function generateSitemap(): string {
   const { posts, pages } = importExistingContent();
-  const baseUrl = siteConfig.siteUrl;
+  const baseUrl = escapeXml(siteConfig.siteUrl);
   
-  if (baseUrl === PLACEHOLDER_SITE) {
+  if (siteConfig.siteUrl === PLACEHOLDER_SITE) {
     console.warn('\n⚠️  Warning: Site URL is still set to placeholder value "https://yoursite.com"');
     console.warn('   Update site.config.json before deploying.\n');
   }
