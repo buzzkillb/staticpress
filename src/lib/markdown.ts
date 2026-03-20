@@ -73,11 +73,13 @@ export function formatFrontmatter(data: Record<string, any>, body: string): stri
     } else if (typeof value === 'number') {
       lines.push(`${key}: ${value}`);
     } else if (typeof value === 'string') {
-      if (value.includes('"') || value.includes('\n')) {
-        lines.push(`${key}: "${value.replace(/"/g, '\\"').replace(/\n/g, '\\n')}"`);
-      } else {
-        lines.push(`${key}: "${value}"`);
-      }
+      // Escape special YAML characters and wrap in quotes
+      const escaped = value
+        .replace(/\\/g, '\\\\')
+        .replace(/"/g, '\\"')
+        .replace(/\n/g, '\\n')
+        .replace(/---/g, '\\-\\-\\-'); // Prevent YAML document separator injection
+      lines.push(`${key}: "${escaped}"`);
     }
   }
   

@@ -95,7 +95,6 @@
     // Theme
     function applyTheme() {
       document.documentElement.classList.toggle('dark', state.theme === 'dark');
-      document.documentElement.classList.toggle('dark', state.theme === 'dark');
     }
 
     // Render app
@@ -454,17 +453,17 @@
       const element = document.getElementById('tiptap-editor');
       if (!element) return;
       
-      // Convert markdown to HTML for TipTap if we have markdown content
+      // Always sanitize content through the server's render API for safety
       let content = state.currentItem?.content || '';
-      if (content && !content.includes('<')) {
-        // It's markdown, need to convert
-        try {
-          const result = await api('/render', {
-            method: 'POST',
-            body: JSON.stringify({ content }),
-          });
-          content = result.html || content;
-        } catch (e) {}
+      try {
+        const result = await api('/render', {
+          method: 'POST',
+          body: JSON.stringify({ content }),
+        });
+        // TipTap needs HTML, so use sanitized HTML
+        content = result.html || '';
+      } catch (e) {
+        content = '';
       }
       
       state.editor = new Editor({
@@ -476,12 +475,11 @@
         ],
         content,
         onUpdate: ({ editor }) => {
-          updatePreview(editor.getHTML());
+          // Get markdown from TipTap and re-sanitize for preview
+          const md = editor.storage.markdown?.getMarkdown?.() || editor.getText();
+          updatePreview(md);
         },
       });
-      
-      // Initial preview update
-      updatePreview(content);
     }
 
     // Also init TipTap if we're in visual mode

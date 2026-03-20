@@ -39,17 +39,25 @@ const { title, description = 'A static site built with StaticPress', image } = A
         if (localStorage.getItem('theme') === 'light') document.documentElement.classList.remove('dark');
         else document.documentElement.classList.add('dark');
         
-        // Apply custom theme CSS (sanitized to prevent XSS)
+        // Apply custom theme CSS - only allow CSS custom properties for safety
         const themeCss = localStorage.getItem('theme_css');
         if (themeCss) {
-          // Escape patterns that could escape the style tag
-          const sanitized = themeCss
-            .replace(/<\//gi, '<\\/')
-            .replace(/<\/style/gi, '<\\/style')
-            .replace(/<\/script/gi, '<\\/script');
-          const style = document.createElement('style');
-          style.textContent = sanitized;
-          document.head.appendChild(style);
+          // Only allow CSS custom properties (var(--xxx)) to prevent injection attacks
+          // Parse and extract only valid CSS variable declarations
+          const lines = themeCss.split(';');
+          const validVars = [];
+          for (const line of lines) {
+            const trimmed = line.trim();
+            // Only allow lines that are CSS custom properties
+            if (/^--[\w-]+:\s*[^;]+$/.test(trimmed)) {
+              validVars.push(trimmed);
+            }
+          }
+          if (validVars.length > 0) {
+            const style = document.createElement('style');
+            style.textContent = ':root { ' + validVars.join('; ') + ' }';
+            document.head.appendChild(style);
+          }
         }
       })();
     </script>
