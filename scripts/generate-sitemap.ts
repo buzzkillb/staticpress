@@ -64,6 +64,19 @@ ${urls.join('\n')}
 
   writeFileSync(join(DIST_DIR, 'sitemap.xml'), sitemap, 'utf-8');
   console.log('Generated sitemap.xml');
+  
+  const robots = `User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: ${siteUrl}/sitemap.xml
+
+# Security - keep admin and API private
+Disallow: /admin/
+Disallow: /api/`;
+
+  writeFileSync(join(DIST_DIR, 'robots.txt'), robots, 'utf-8');
+  console.log('Generated robots.txt');
 }
 
 generateSitemap();
