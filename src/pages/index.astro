@@ -1,8 +1,13 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+
+const siteUrl = 'https://yoursite.com'; // Configure this
 ---
 
-<BaseLayout title="Welcome to StaticPress">
+<BaseLayout 
+  title="Welcome to StaticPress" 
+  description="A fast, secure static site generator that deploys to Cloudflare Pages. Create blogs, landing pages, and business websites with ease."
+>
   <style>
     :root {
       --color-primary: #3b82f6;
@@ -108,9 +113,19 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     }
   </style>
   
+  <!-- SEO Open Graph -->
+  <meta property="og:title" content="Welcome to StaticPress" slot="head" />
+  <meta property="og:description" content="A fast, secure static site generator that deploys to Cloudflare Pages. Create blogs, landing pages, and business websites with ease." slot="head" />
+  <meta property="og:url" content={siteUrl} slot="head" />
+  <meta property="og:type" content="website" slot="head" />
+  
   <header>
     <div class="container" style="display: flex; justify-content: space-between; align-items: center;">
       <a href="/" class="logo">StaticPress</a>
+      <nav>
+        <a href="/blog">Blog</a>
+        <a href="/about">About</a>
+      </nav>
     </div>
   </header>
   
@@ -121,6 +136,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         A WordPress-like experience for creating static websites. 
         Edit content, customize themes, and deploy to Cloudflare Pages with one click.
       </p>
+      <a href="/admin/" class="btn">Get Started</a>
       
       <div class="features">
         <div class="feature">
@@ -141,7 +157,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   
   <footer>
     <div class="container">
-      <p>Built with StaticPress</p>
+      <p>Built with <a href="https://github.com/buzzkillb/staticpress" style="color: var(--color-primary);">StaticPress</a></p>
     </div>
   </footer>
 </BaseLayout>

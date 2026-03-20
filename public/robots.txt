@@ -1,2 +1,9 @@
 User-agent: *
 Allow: /
+
+# Sitemap
+Sitemap: https://yoursite.com/sitemap.xml
+
+# Security - keep admin and API private
+Disallow: /admin/
+Disallow: /api/

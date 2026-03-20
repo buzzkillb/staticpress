@@ -3,17 +3,30 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "dev": "astro dev",
+    "dev": "bun run src/server.ts",
     "build": "astro build",
-    "preview": "npx serve dist -l 4322"
-  },
-  "devDependencies": {
-    "@tailwindcss/vite": "^4.0.0",
-    "@types/bun": "latest"
+    "preview": "bunx wrangler pages dev dist",
+    "deploy": "bunx wrangler pages deploy dist"
   },
   "dependencies": {
     "@astrojs/cloudflare": "^13.1.2",
+    "@tiptap/core": "^2.10.0",
+    "@tiptap/extension-code-block": "^2.10.0",
+    "@tiptap/extension-image": "^2.10.0",
+    "@tiptap/extension-link": "^2.10.0",
+    "@tiptap/extension-placeholder": "^2.10.0",
+    "@tiptap/pm": "^2.10.0",
+    "@tiptap/starter-kit": "^2.10.0",
     "astro": "^6.0.7",
+    "dompurify": "^3.2.0",
+    "jsdom": "^26.0.0",
+    "marked": "^15.0.0",
     "tailwindcss": "^4.2.2"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.0.0",
+    "@types/bun": "latest",
+    "@types/dompurify": "^3.0.5",
+    "@types/jsdom": "^28.0.1"
   }
 }

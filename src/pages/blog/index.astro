@@ -6,6 +6,8 @@ const posts = await getCollection('posts');
 const publishedPosts = posts
   .filter(post => post.data.published)
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+
+const siteUrl = 'https://yoursite.com'; // Configure this
 ---
 
 <!DOCTYPE html>
@@ -13,14 +15,35 @@ const publishedPosts = posts
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!-- Primary SEO -->
     <title>Blog | StaticPress</title>
+    <meta name="description" content="Articles and updates from StaticPress" />
+    <link rel="canonical" href={`${siteUrl}/blog/`} />
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="Blog | StaticPress" />
+    <meta property="og:description" content="Articles and updates from StaticPress" />
+    <meta property="og:url" content={`${siteUrl}/blog/`} />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="StaticPress" />
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Blog | StaticPress" />
+    <meta name="twitter:description" content="Articles and updates from StaticPress" />
+    
+    <!-- Robots -->
+    <meta name="robots" content="index, follow" />
+    
+    <!-- Theme -->
     <script is:inline>
       if (localStorage.getItem('theme') === 'light') document.documentElement.classList.remove('dark');
       else document.documentElement.classList.add('dark');
     </script>
   </head>
-  <body class="bg-gray-100 dark:bg-gray-900 transition-colors">
-    <header class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+  <body class="bg-gray-50 dark:bg-gray-900 transition-colors">
+    <header class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
       <div class="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
         <a href="/" class="text-xl font-bold text-gray-900 dark:text-white">StaticPress</a>
         <nav class="flex gap-4">
@@ -31,17 +54,18 @@ const publishedPosts = posts
     </header>
     
     <main class="max-w-4xl mx-auto px-4 py-8">
-      <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-8">Blog</h1>
+      <h1 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-8">Blog</h1>
       
       {publishedPosts.length === 0 ? (
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-8 text-center">
           <p class="text-gray-500 dark:text-gray-400">No posts yet. Create your first post in the admin panel!</p>
+          <a href="/admin/" class="inline-block mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Go to Admin</a>
         </div>
       ) : (
         <div class="space-y-6">
           {publishedPosts.map(post => (
-            <article class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-              <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-2">
+            <article class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition">
+              <h2 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white mb-2">
                 <a href={`/blog/${post.id}`} class="hover:text-blue-600 dark:hover:text-blue-400">
                   {post.data.title}
                 </a>
@@ -63,7 +87,7 @@ const publishedPosts = posts
     
     <footer class="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 mt-12">
       <div class="max-w-4xl mx-auto py-6 text-center text-gray-600 dark:text-gray-400">
-        Built with StaticPress
+        <p>Built with <a href="https://github.com/buzzkillb/staticpress" class="text-blue-600 hover:underline">StaticPress</a></p>
       </div>
     </footer>
   </body>

@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StaticPress Admin</title>
+  <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, -apple-system, sans-serif; }
+    
+    /* TipTap Editor Styles */
+    .ProseMirror { outline: none; min-height: 300px; padding: 1rem; }
+    .ProseMirror p.is-editor-empty:first-child::before { color: #9ca3af; content: attr(data-placeholder); float: left; height: 0; pointer-events: none; }
+    .ProseMirror h1 { font-size: 2em; font-weight: bold; margin: 0.67em 0; }
+    .ProseMirror h2 { font-size: 1.5em; font-weight: bold; margin: 0.83em 0; }
+    .ProseMirror h3 { font-size: 1.17em; font-weight: bold; margin: 1em 0; }
+    .ProseMirror ul { list-style-type: disc; padding-left: 2em; margin: 1em 0; }
+    .ProseMirror ol { list-style-type: decimal; padding-left: 2em; margin: 1em 0; }
+    .ProseMirror blockquote { border-left: 3px solid #d1d5db; padding-left: 1em; margin: 1em 0; color: #6b7280; }
+    .ProseMirror code { background: #f3f4f6; padding: 0.2em 0.4em; border-radius: 3px; font-family: monospace; }
+    .ProseMirror pre { background: #1f2937; color: #f3f4f6; padding: 1em; border-radius: 0.5em; overflow-x: auto; }
+    .ProseMirror pre code { background: none; padding: 0; }
+    .ProseMirror a { color: #3b82f6; text-decoration: underline; }
+    .ProseMirror img { max-width: 100%; height: auto; }
+    
+    /* Dark mode */
+    .dark .ProseMirror { background: #1f2937; color: #f9fafb; }
+    .dark .ProseMirror h1, .dark .ProseMirror h2, .dark .ProseMirror h3 { color: #f9fafb; }
+    .dark .ProseMirror blockquote { border-color: #4b5563; color: #9ca3af; }
+    .dark .ProseMirror code { background: #374151; }
+    .dark .ProseMirror pre { background: #111827; }
+    
+    /* Split pane */
+    .split-pane { display: flex; height: calc(100vh - 140px); }
+    .split-pane > div { flex: 1; overflow: auto; }
+    .split-pane .divider { width: 4px; background: #e5e7eb; cursor: col-resize; }
+    .dark .split-pane .divider { background: #374151; }
+    
+    /* Preview iframe */
+    .preview-iframe { width: 100%; height: 100%; border: none; background: white; }
+    
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: #f3f4f6; }
+    ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 4px; }
+    .dark ::-webkit-scrollbar-track { background: #1f2937; }
+    .dark ::-webkit-scrollbar-thumb { background: #4b5563; }
+    
+    /* Toast */
+    .toast { position: fixed; bottom: 20px; right: 20px; padding: 12px 24px; border-radius: 8px; color: white; font-weight: 500; z-index: 1000; transform: translateY(100px); opacity: 0; transition: all 0.3s; }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast.success { background: #10b981; }
+    .toast.error { background: #ef4444; }
+    .toast.info { background: #3b82f6; }
+  </style>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900">
+  <div id="app"></div>
+  
+  <div id="toast" class="toast"></div>
+
+  <script type="module">
+    // State
+    const state = {
+      posts: [],
+      pages: [],
+      currentView: 'posts',
+      currentItem: null,
+      editor: null,
+      mode: 'visual',
+      previewMode: 'split',
+      theme: localStorage.getItem('theme') || 'dark',
+      loading: false,
+    };
+
+    // API helpers
+    async function api(endpoint, options = {}) {
+      const res = await fetch(`/api${endpoint}`, {
+        headers: { 'Content-Type': 'application/json' },
+        ...options,
+      });
+      return res.json();
+    }
+
+    // Toast notifications
+    function showToast(message, type = 'info') {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.className = `toast ${type} show`;
+      setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    // Theme
+    function applyTheme() {
+      document.documentElement.classList.toggle('dark', state.theme === 'dark');
+      document.documentElement.classList.toggle('dark', state.theme === 'dark');
+    }
+
+    // Render app
+    function render() {
+      applyTheme();
+      const app = document.getElementById('app');
+      app.innerHTML = `
+        <div class="flex h-screen">
+          <!-- Sidebar -->
+          <aside class="w-64 bg-gray-900 dark:bg-black text-white flex flex-col">
+            <div class="p-6 border-b border-gray-800">
+              <h1 class="text-xl font-bold">StaticPress</h1>
+              <p class="text-xs text-gray-400 mt-1">Admin Panel</p>
+            </div>
+            <nav class="flex-1 p-4 space-y-1">
+              <button onclick="navigate('posts')" class="w-full text-left px-4 py-2 rounded hover:bg-gray-800 ${state.currentView === 'posts' ? 'bg-gray-800' : ''}">
+                📝 Posts
+              </button>
+              <button onclick="navigate('pages')" class="w-full text-left px-4 py-2 rounded hover:bg-gray-800 ${state.currentView === 'pages' ? 'bg-gray-800' : ''}">
+                📄 Pages
+              </button>
+              <div class="pt-4 border-t border-gray-800 mt-4">
+                <p class="text-xs text-gray-500 uppercase px-4 mb-2">Publish</p>
+                <button onclick="runBuild()" class="w-full text-left px-4 py-2 rounded hover:bg-gray-800">
+                  🔨 Build Site
+                </button>
+                <button onclick="runDeploy()" class="w-full text-left px-4 py-2 rounded hover:bg-gray-800">
+                  🚀 Deploy
+                </button>
+              </div>
+            </nav>
+            <div class="p-4 border-t border-gray-800">
+              <button onclick="toggleTheme()" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-400 hover:text-white w-full rounded hover:bg-gray-800">
+                ${state.theme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode'}
+              </button>
+              <a href="/" target="_blank" class="block px-4 py-2 text-sm text-gray-400 hover:text-white mt-2">
+                👁️ View Site →
+              </a>
+            </div>
+          </aside>
+          
+          <!-- Main Content -->
+          <main class="flex-1 flex flex-col overflow-hidden">
+            ${renderMain()}
+          </main>
+        </div>
+      `;
+      
+      if (state.currentItem !== null) {
+        initEditor();
+      }
+    }
+
+    function renderMain() {
+      if (state.currentItem !== null) {
+        return renderEditor();
+      }
+      
+      if (state.currentView === 'posts') {
+        return renderList('posts', state.posts);
+      }
+      if (state.currentView === 'pages') {
+        return renderList('pages', state.pages);
+      }
+      return renderDashboard();
+    }
+
+    function renderDashboard() {
+      return `
+        <div class="p-8">
+          <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-8">Dashboard</h1>
+          <div class="grid grid-cols-3 gap-6">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+              <h3 class="font-semibold text-gray-900 dark:text-white">📝 Posts</h3>
+              <p class="text-3xl font-bold text-blue-600">${state.posts.length}</p>
+            </div>
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+              <h3 class="font-semibold text-gray-900 dark:text-white">📄 Pages</h3>
+              <p class="text-3xl font-bold text-green-600">${state.pages.length}</p>
+            </div>
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+              <h3 class="font-semibold text-gray-900 dark:text-white">🚀 Ready</h3>
+              <p class="text-3xl font-bold text-purple-600">Build</p>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderList(type, items) {
+      return `
+        <div class="p-8 flex-1 overflow-auto">
+          <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl font-bold text-gray-900 dark:text-white capitalize">${type}</h1>
+            <button onclick="createNew('${type}')" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+              + New ${type === 'posts' ? 'Post' : 'Page'}
+            </button>
+          </div>
+          <div class="space-y-4">
+            ${items.length === 0 ? `
+              <div class="bg-white dark:bg-gray-800 rounded-lg p-8 text-center text-gray-500">
+                No ${type} yet. Create your first one!
+              </div>
+            ` : items.map(item => `
+              <div class="bg-white dark:bg-gray-800 rounded-lg p-4 flex justify-between items-center">
+                <div>
+                  <h3 class="font-semibold text-gray-900 dark:text-white">${escapeHtml(item.title || 'Untitled')}</h3>
+                  <p class="text-sm text-gray-500">/${escapeHtml(item.slug)} • ${item.published ? 'Published' : 'Draft'}</p>
+                </div>
+                <div class="flex gap-2">
+                  <button onclick="editItem('${type}', '${item.slug}')" class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">Edit</button>
+                  <button onclick="deleteItem('${type}', '${item.slug}')" class="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700">Delete</button>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderEditor() {
+      const item = state.currentItem;
+      return `
+        <div class="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center bg-white dark:bg-gray-800">
+          <div class="flex gap-4">
+            <button onclick="backToList()" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600">
+              ← Back
+            </button>
+            <select id="preview-select" onchange="setPreviewMode(this.value)" class="px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600">
+              <option value="split" ${state.previewMode === 'split' ? 'selected' : ''}>Split View</option>
+              <option value="iframe" ${state.previewMode === 'iframe' ? 'selected' : ''}>Iframe Preview</option>
+              <option value="rendered" ${state.previewMode === 'rendered' ? 'selected' : ''}>Rendered HTML</option>
+            </select>
+          </div>
+          <div class="flex gap-2">
+            <button onclick="saveItem()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+              💾 Save
+            </button>
+          </div>
+        </div>
+        
+        <!-- Frontmatter -->
+        <div class="p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+          <div class="grid grid-cols-4 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Title</label>
+              <input type="text" id="item-title" value="${escapeHtml(item.title || '')}" 
+                class="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600" 
+                placeholder="Post title...">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Slug</label>
+              <input type="text" id="item-slug" value="${escapeHtml(item.slug || '')}" 
+                class="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
+                placeholder="url-slug">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Excerpt</label>
+              <input type="text" id="item-excerpt" value="${escapeHtml(item.excerpt || '')}" 
+                class="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
+                placeholder="Short description...">
+            </div>
+            <div class="flex items-end gap-4">
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" id="item-published" ${item.published ? 'checked' : ''} class="w-4 h-4 rounded">
+                <span class="text-sm text-gray-700 dark:text-gray-300">Published</span>
+              </label>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Editor/Preview -->
+        <div class="split-pane ${state.previewMode === 'iframe' || state.previewMode === 'rendered' ? 'flex-col' : ''}">
+          ${state.previewMode !== 'iframe' ? `
+            <div class="border-r border-gray-200 dark:border-gray-700">
+              <div class="p-2 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 flex gap-2">
+                <button onclick="setMode('visual')" class="px-3 py-1 rounded ${state.mode === 'visual' ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-gray-700'}">Visual</button>
+                <button onclick="setMode('markdown')" class="px-3 py-1 rounded ${state.mode === 'markdown' ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-gray-700'}">Markdown</button>
+              </div>
+              <div id="editor-container">
+                ${state.mode === 'visual' ? `
+                  <div id="tiptap-editor" class="ProseMirror bg-white dark:bg-gray-800 min-h-[400px]"></div>
+                ` : `
+                  <textarea id="markdown-editor" class="w-full h-full p-4 bg-white dark:bg-gray-800 text-gray-900 dark:text-white font-mono text-sm resize-none border-0 outline-none" placeholder="Write markdown...">${escapeHtml(item.content || '')}</textarea>
+                `}
+              </div>
+            </div>
+          ` : ''}
+          
+          ${state.previewMode === 'split' ? '<div class="divider"></div>' : ''}
+          
+          ${state.previewMode === 'iframe' || state.previewMode === 'split' ? `
+            <div class="${state.previewMode === 'split' ? '' : 'h-1/2'}">
+              <div class="p-2 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Preview</span>
+              </div>
+              ${state.previewMode === 'iframe' ? `
+                <iframe id="preview-iframe" class="preview-iframe" srcdoc="<html><body style='font-family:system-ui;padding:2rem;'><p class='text-gray-500'>Save to see preview...</p></body></html>"></iframe>
+              ` : `
+                <div id="preview-html" class="p-6 bg-white dark:bg-gray-800 min-h-[400px] overflow-auto prose dark:prose-invert max-w-none">
+                  <p class="text-gray-500">Save to see preview...</p>
+                </div>
+              `}
+            </div>
+          ` : ''}
+          
+          ${state.previewMode === 'rendered' ? `
+            <div class="h-1/2 border-t border-gray-200 dark:border-gray-700">
+              <div class="p-2 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Rendered HTML</span>
+              </div>
+              <textarea id="html-output" class="w-full h-full p-4 bg-gray-900 text-green-400 font-mono text-sm resize-none border-0 outline-none" readonly placeholder="HTML output will appear here..."></textarea>
+            </div>
+          ` : ''}
+        </div>
+      `;
+    }
+
+    // Navigation
+    window.navigate = async function(view) {
+      state.currentView = view;
+      state.currentItem = null;
+      await loadContent();
+      render();
+    };
+
+    window.backToList = function() {
+      state.currentItem = null;
+      state.editor = null;
+      render();
+    };
+
+    // Load content
+    async function loadContent() {
+      try {
+        state.posts = await api('/posts');
+        state.pages = await api('/pages');
+      } catch (e) {
+        console.error('Failed to load content:', e);
+        showToast('Failed to load content', 'error');
+      }
+    }
+
+    // Create new
+    window.createNew = function(type) {
+      const slug = `new-${type}-${Date.now()}`;
+      state.currentItem = {
+        slug,
+        title: '',
+        content: '',
+        excerpt: '',
+        published: false,
+        date: new Date().toISOString().split('T')[0],
+        isNew: true,
+      };
+      state.currentView = type;
+      render();
+    };
+
+    // Edit item
+    window.editItem = async function(type, slug) {
+      try {
+        const item = await api(`/${type}/${slug}`);
+        state.currentItem = { ...item, isNew: false };
+        state.currentView = type;
+        render();
+      } catch (e) {
+        showToast('Failed to load item', 'error');
+      }
+    };
+
+    // Delete item
+    window.deleteItem = async function(type, slug) {
+      if (!confirm(`Delete ${slug}?`)) return;
+      try {
+        await api(`/${type}/${slug}`, { method: 'DELETE' });
+        showToast('Deleted successfully', 'success');
+        await loadContent();
+        render();
+      } catch (e) {
+        showToast('Failed to delete', 'error');
+      }
+    };
+
+    // Save item
+    window.saveItem = async function() {
+      const item = state.currentItem;
+      const data = {
+        title: document.getElementById('item-title').value,
+        slug: document.getElementById('item-slug').value,
+        excerpt: document.getElementById('item-excerpt').value,
+        published: document.getElementById('item-published').checked,
+        date: item.date,
+        content: state.mode === 'markdown' 
+          ? document.getElementById('markdown-editor').value 
+          : (state.editor?.getHTML() || ''),
+      };
+      
+      if (!data.title) {
+        showToast('Title is required', 'error');
+        return;
+      }
+      
+      if (!data.slug) {
+        data.slug = slugify(data.title);
+      }
+      
+      try {
+        await api(`/${state.currentView}/${data.slug}`, {
+          method: 'POST',
+          body: JSON.stringify(data),
+        });
+        showToast('Saved successfully', 'success');
+        state.currentItem = { ...data, isNew: false };
+        await loadContent();
+        render();
+      } catch (e) {
+        showToast('Failed to save', 'error');
+      }
+    };
+
+    // Editor mode
+    window.setMode = function(mode) {
+      if (state.mode === mode) return;
+      state.mode = mode;
+      
+      if (mode === 'markdown' && state.editor) {
+        // Save HTML content to markdown before switching
+        const mdContent = state.editor.storage.markdown?.getMarkdown?.() || state.editor.getText();
+        document.getElementById('editor-container').innerHTML = `
+          <textarea id="markdown-editor" class="w-full h-full p-4 bg-white dark:bg-gray-800 text-gray-900 dark:text-white font-mono text-sm resize-none border-0 outline-none" placeholder="Write markdown...">${escapeHtml(mdContent)}</textarea>
+        `;
+      } else if (mode === 'visual' && state.editor === null) {
+        // Will init TipTap after render
+        setTimeout(initTipTap, 0);
+      }
+      
+      render();
+    };
+
+    // Preview mode
+    window.setPreviewMode = function(mode) {
+      state.previewMode = mode;
+      render();
+    };
+
+    // Init TipTap
+    async function initTipTap() {
+      if (state.mode !== 'visual') return;
+      
+      const { Editor } = await import('https://unpkg.com/@tiptap/core@2.1.0/dist/bundle.esm.js?raw');
+      const { StarterKit } = await import('https://unpkg.com/@tiptap/starter-kit@2.1.0/dist/bundle.esm.js?raw');
+      const { Placeholder } = await import('https://unpkg.com/@tiptap/extension-placeholder@2.1.0/dist/bundle.esm.js?raw');
+      const { Link } = await import('https://unpkg.com/@tiptap/extension-link@2.1.0/dist/bundle.esm.js?raw');
+      
+      const element = document.getElementById('tiptap-editor');
+      if (!element) return;
+      
+      // Convert markdown to HTML for TipTap if we have markdown content
+      let content = state.currentItem?.content || '';
+      if (content && !content.includes('<')) {
+        // It's markdown, need to convert
+        try {
+          const result = await api('/render', {
+            method: 'POST',
+            body: JSON.stringify({ content }),
+          });
+          content = result.html || content;
+        } catch (e) {}
+      }
+      
+      state.editor = new Editor({
+        element,
+        extensions: [
+          StarterKit,
+          Placeholder.configure({ placeholder: 'Start writing...' }),
+          Link.configure({ openOnClick: false }),
+        ],
+        content,
+        onUpdate: ({ editor }) => {
+          updatePreview(editor.getHTML());
+        },
+      });
+      
+      // Initial preview update
+      updatePreview(content);
+    }
+
+    // Also init TipTap if we're in visual mode
+    window.initEditor = function() {
+      if (state.mode === 'visual' && !state.editor) {
+        setTimeout(initTipTap, 0);
+      } else if (state.mode === 'markdown') {
+        // Add input listener for markdown
+        setTimeout(() => {
+          const ta = document.getElementById('markdown-editor');
+          if (ta) {
+            ta.addEventListener('input', () => updatePreview(ta.value));
+          }
+        }, 0);
+      }
+    };
+
+    // Update preview
+    async function updatePreview(content) {
+      if (state.previewMode === 'split') {
+        const previewEl = document.getElementById('preview-html');
+        if (previewEl) {
+          try {
+            const result = await api('/render', {
+              method: 'POST',
+              body: JSON.stringify({ content }),
+            });
+            previewEl.innerHTML = result.html || '<p>Loading...</p>';
+          } catch (e) {
+            previewEl.innerHTML = '<p>Error rendering preview</p>';
+          }
+        }
+      } else if (state.previewMode === 'iframe') {
+        const iframe = document.getElementById('preview-iframe');
+        if (iframe) {
+          try {
+            const result = await api('/render', {
+              method: 'POST',
+              body: JSON.stringify({ content }),
+            });
+            const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{font-family:system-ui;padding:2rem;max-width:800px;margin:0 auto;background:#fff;color:#1f2937;dark){background:#111827;color:#f9fafb;}}}</style></head><body>${result.html}</body></html>`;
+            iframe.srcdoc = html;
+          } catch (e) {}
+        }
+      } else if (state.previewMode === 'rendered') {
+        const outputEl = document.getElementById('html-output');
+        if (outputEl) {
+          try {
+            const result = await api('/render', {
+              method: 'POST',
+              body: JSON.stringify({ content }),
+            });
+            outputEl.value = result.html || '';
+          } catch (e) {}
+        }
+      }
+    }
+
+    // Build
+    window.runBuild = async function() {
+      if (!confirm('Run build? This will generate static files in dist/')) return;
+      showToast('Building...', 'info');
+      try {
+        const result = await api('/build', { method: 'POST' });
+        if (result.success) {
+          showToast('Build successful!', 'success');
+        } else {
+          showToast('Build failed: ' + (result.error || 'Unknown error'), 'error');
+        }
+      } catch (e) {
+        showToast('Build failed', 'error');
+      }
+    };
+
+    // Deploy
+    window.runDeploy = async function() {
+      if (!confirm('Deploy to Cloudflare Pages? Make sure you have configured your Cloudflare settings.')) return;
+      showToast('Deploying...', 'info');
+      try {
+        const result = await api('/deploy', { method: 'POST' });
+        if (result.success) {
+          showToast('Deployed successfully!', 'success');
+        } else {
+          showToast('Deploy failed: ' + (result.error || 'Unknown error'), 'error');
+        }
+      } catch (e) {
+        showToast('Deploy failed', 'error');
+      }
+    };
+
+    // Theme toggle
+    window.toggleTheme = function() {
+      state.theme = state.theme === 'dark' ? 'light' : 'dark';
+      localStorage.setItem('theme', state.theme);
+      applyTheme();
+      render();
+    };
+
+    // Utilities
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function slugify(text) {
+      return text.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').trim();
+    }
+
+    // Auto-slug from title
+    document.addEventListener('input', (e) => {
+      if (e.target.id === 'item-title' && !state.currentItem?.slug.startsWith('new-')) return;
+      const slugInput = document.getElementById('item-slug');
+      if (slugInput && e.target.id === 'item-title') {
+        // Only auto-update if slug hasn't been manually edited
+        if (!slugInput.dataset.manual) {
+          slugInput.value = slugify(e.target.value);
+        }
+      }
+    });
+
+    document.addEventListener('focusin', (e) => {
+      if (e.target.id === 'item-slug') {
+        e.target.dataset.manual = 'true';
+      }
+    });
+
+    // Init
+    loadContent().then(render);
+  </script>
+</body>
+</html>
