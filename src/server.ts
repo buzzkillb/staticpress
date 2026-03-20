@@ -1,5 +1,5 @@
 import { renderMarkdown, extractFrontmatter, formatFrontmatter, slugify } from './lib/markdown';
-import { readFileSync, writeFileSync, existsSync, readdirSync, mkdirSync, rmSync, renameSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync, readdirSync, mkdirSync, rmSync, renameSync, statSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { spawn } from 'child_process';
@@ -20,12 +20,14 @@ interface Cache {
   timestamp: number;
 }
 let contentCache: Cache | null = null;
-const CACHE_TTL = 5000;
+const CACHE_TTL = 1000; // 1 second cache to reduce stale data window
 
 function getCachedContent() {
   if (contentCache && Date.now() - contentCache.timestamp < CACHE_TTL) {
     return contentCache;
   }
+  // Cache expired or missing - invalidate and return null
+  contentCache = null;
   return null;
 }
 
@@ -103,7 +105,7 @@ function getMediaFiles() {
     const filepath = join(MEDIA_DIR, file);
     const stats = { size: 0 };
     try {
-      const { size } = require('fs').statSync(filepath);
+      const { size } = statSync(filepath);
       stats.size = size;
     } catch (e) {}
     
@@ -452,8 +454,12 @@ async function handleAPI(url: URL, method: string, request: Request): Promise<Re
           let buffer = file.data;
           let filename = file.name;
           
-          // Skip compression for SVG, just save as-is
-          if (!file.type.includes('svg')) {
+          // Convert SVG to WebP to prevent XSS attacks in SVG content
+          if (file.type.includes('svg')) {
+            const compressed = await compressImage(file.data, file.name);
+            buffer = compressed.buffer;
+            filename = compressed.filename;
+          } else {
             const compressed = await compressImage(file.data, file.name);
             buffer = compressed.buffer;
             filename = compressed.filename;
@@ -529,9 +535,11 @@ async function server(port: number = 4321) {
       const pathname = url.pathname;
       
       // API endpoints are protected - only allow from localhost
+      // Since server binds to 127.0.0.1, requests already come from localhost
+      // But we verify the hostname to prevent host header injection
       if (pathname.startsWith('/api/')) {
-        const host = request.headers.get('host') || '';
-        const isLocalhost = host.includes('localhost') || host.includes('127.0.0.1');
+        const hostname = url.hostname;
+        const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
         if (!isLocalhost) {
           return new Response('API not available', { status: 403 });
         }

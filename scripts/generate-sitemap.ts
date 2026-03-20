@@ -8,6 +8,7 @@ const DIST_DIR = join(ROOT, 'dist');
 const POSTS_DIR = join(ROOT, 'src', 'content', 'posts');
 const PAGES_DIR = join(ROOT, 'src', 'content', 'pages');
 const SITE_URL = 'https://yoursite.com';
+const PLACEHOLDER_URL = 'https://yoursite.com';
 
 function extractFrontmatter(content) {
   const frontmatterRegex = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/;
@@ -26,6 +27,11 @@ function extractFrontmatter(content) {
 }
 
 function generateSitemap() {
+  if (SITE_URL === PLACEHOLDER_URL) {
+    console.warn('\n⚠️  Warning: Site URL is still set to placeholder value "https://yoursite.com"');
+    console.warn('   Update the SITE_URL constant in scripts/generate-sitemap.ts before deploying.\n');
+  }
+  
   const urls = [
     `<url><loc>${SITE_URL}/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>`,
     `<url><loc>${SITE_URL}/blog/</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>`,

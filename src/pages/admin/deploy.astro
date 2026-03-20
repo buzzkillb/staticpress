@@ -220,33 +220,39 @@ document.getElementById('deploy-btn').addEventListener('click', async () => {
         btn.disabled = true;
         output.classList.remove('hidden');
         
-        const fullCommand = `CF_API_TOKEN=${token} CF_ACCOUNT_ID=${account} bunx wrangler pages deploy dist --project-name=${project}`;
         const maskedCommand = `CF_API_TOKEN=${maskToken(token)} CF_ACCOUNT_ID=${account} bunx wrangler pages deploy dist --project-name=${project}`;
         
         logs.innerHTML = `<p class="text-yellow-400 text-xs mb-2">⚠️ Token will be visible in the copied command. Keep it secure!</p><code class="text-green-400">${maskedCommand.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</code>`;
-        logs.dataset.fullCommand = fullCommand;
         
         btn.disabled = false;
         btn.textContent = 'Show Deploy Command';
       });
       
       document.getElementById('copy-full-command')?.addEventListener('click', async () => {
-        const logs = document.getElementById('deploy-logs');
-        const fullCommand = logs.dataset.fullCommand;
-        if (fullCommand) {
-          try {
-            await navigator.clipboard.writeText(fullCommand);
-            const btn = document.getElementById('copy-full-command');
-            const original = btn.textContent;
-            btn.textContent = 'Copied!';
-            btn.classList.add('bg-green-700');
-            setTimeout(() => {
-              btn.textContent = original;
-              btn.classList.remove('bg-green-700');
-            }, 2000);
-          } catch (err) {
-            alert('Failed to copy. Please select and copy manually.');
-          }
+        // Retrieve token from localStorage directly, never store in DOM
+        const project = localStorage.getItem('cf_project');
+        const token = localStorage.getItem('cf_token');
+        const account = localStorage.getItem('cf_account');
+        
+        if (!project || !token || !account) {
+          alert('Please save your Cloudflare settings first!');
+          return;
+        }
+        
+        const fullCommand = `CF_API_TOKEN=${token} CF_ACCOUNT_ID=${account} bunx wrangler pages deploy dist --project-name=${project}`;
+        
+        try {
+          await navigator.clipboard.writeText(fullCommand);
+          const btn = document.getElementById('copy-full-command');
+          const original = btn.textContent;
+          btn.textContent = 'Copied!';
+          btn.classList.add('bg-green-700');
+          setTimeout(() => {
+            btn.textContent = original;
+            btn.classList.remove('bg-green-700');
+          }, 2000);
+        } catch (err) {
+          alert('Failed to copy. Please select and copy manually.');
         }
       });
     </script>
