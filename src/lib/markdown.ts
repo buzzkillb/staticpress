@@ -54,7 +54,7 @@ export function extractFrontmatter(content: string): ParsedContent {
   const body = match[2] || '';
   
   try {
-    const data = yaml.load(frontmatterStr) as FrontmatterData;
+    const data = yaml.load(frontmatterStr, { schema: yaml.JSON_SCHEMA }) as FrontmatterData;
     return { data: data || {}, body };
   } catch (e) {
     console.error('YAML parse error:', e);

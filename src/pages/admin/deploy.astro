@@ -103,11 +103,8 @@
             </button>
             
             <div id="deploy-output" class="mt-4 bg-gray-900 rounded-lg p-4 hidden">
-              <p class="text-yellow-400 text-sm mb-2">⚠️ Warning: Command contains your API token. Do not share this command.</p>
+              <p class="text-yellow-400 text-sm mb-2">⚠️ Run this command in your terminal to deploy. Set token via: export CF_API_TOKEN="your-token"</p>
               <pre class="text-green-400 font-mono text-sm whitespace-pre-wrap mb-4" id="deploy-logs"></pre>
-              <button id="copy-full-command" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition text-sm">
-                Copy Full Command
-              </button>
             </div>
           </div>
           
@@ -220,10 +217,9 @@
       // Deploy button
       document.getElementById('deploy-btn').addEventListener('click', () => {
         const project = localStorage.getItem(CF_PROJECT_KEY);
-        const token = localStorage.getItem(CF_TOKEN_KEY);
         const account = localStorage.getItem(CF_ACCOUNT_KEY);
         
-        if (!project || !token || !account) {
+        if (!project || !account) {
           alert('Please save your Cloudflare settings first!');
           return;
         }
@@ -233,37 +229,9 @@
         
         output.classList.remove('hidden');
         
-        const maskedCommand = `CF_API_TOKEN=${maskToken(token)} CF_ACCOUNT_ID=${account} bunx wrangler pages deploy dist --project-name=${project}`;
+        const command = `export CF_API_TOKEN="your-token-here" && export CF_ACCOUNT_ID=${account} && bunx wrangler pages deploy dist --project-name=${project}`;
         
-        logs.innerHTML = `<p class="text-yellow-400 text-xs mb-2">⚠️ Token will be visible in the copied command. Keep it secure!</p><code class="text-green-400">${maskedCommand.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</code>`;
-      });
-      
-      // Copy command
-      document.getElementById('copy-full-command')?.addEventListener('click', async () => {
-        const project = localStorage.getItem(CF_PROJECT_KEY);
-        const token = localStorage.getItem(CF_TOKEN_KEY);
-        const account = localStorage.getItem(CF_ACCOUNT_KEY);
-        
-        if (!project || !token || !account) {
-          alert('Please save your Cloudflare settings first!');
-          return;
-        }
-        
-        const fullCommand = `CF_API_TOKEN=${token} CF_ACCOUNT_ID=${account} bunx wrangler pages deploy dist --project-name=${project}`;
-        
-        try {
-          await navigator.clipboard.writeText(fullCommand);
-          const btn = document.getElementById('copy-full-command');
-          const original = btn.textContent;
-          btn.textContent = 'Copied!';
-          btn.classList.add('bg-green-700');
-          setTimeout(() => {
-            btn.textContent = original;
-            btn.classList.remove('bg-green-700');
-          }, 2000);
-        } catch (err) {
-          alert('Failed to copy. Please select and copy manually.');
-        }
+        logs.innerHTML = `<p class="text-yellow-400 text-xs mb-2">Copy and run this command in your terminal. Set your actual API token in the command above.</p><code class="text-green-400">${command.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</code>`;
       });
       
       // Save config file
@@ -271,7 +239,6 @@
         const siteUrl = localStorage.getItem(SITE_URL_KEY) || '';
         const formspreeId = localStorage.getItem(FORMSPREE_KEY) || '';
         const cfProject = localStorage.getItem(CF_PROJECT_KEY) || '';
-        const cfToken = localStorage.getItem(CF_TOKEN_KEY) || '';
         const cfAccount = localStorage.getItem(CF_ACCOUNT_KEY) || '';
         
         const config = {
@@ -279,7 +246,6 @@
           formspreeId,
           cloudflare: {
             project: cfProject,
-            token: cfToken,
             account: cfAccount
           }
         };
@@ -292,7 +258,7 @@
         a.click();
         URL.revokeObjectURL(url);
         
-        document.getElementById('config-status').textContent = 'Config saved! WARNING: Contains API token - keep file secure.';
+        document.getElementById('config-status').textContent = 'Config saved! Token not included for security.';
       });
       
       // Load config file

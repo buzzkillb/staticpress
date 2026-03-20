@@ -257,7 +257,26 @@ function deleteContentFile(type: 'post' | 'page', slug: string): boolean {
 
 function deleteMediaFile(filename: string): boolean {
   try {
+    // Validate filename - only allow safe characters and prevent path traversal
+    if (!/^[a-zA-Z0-9][a-zA-Z0-9-_.]*$/.test(filename)) {
+      console.error(`Invalid filename format: ${filename}`);
+      return false;
+    }
+    
+    // Check for path traversal attempts
+    if (filename.includes('..') || filename.includes('/') || filename.includes('\\')) {
+      console.error(`Path traversal attempt detected: ${filename}`);
+      return false;
+    }
+    
     const filepath = join(MEDIA_DIR, filename);
+    
+    // Ensure resolved path is within MEDIA_DIR
+    if (!filepath.startsWith(MEDIA_DIR)) {
+      console.error(`Access denied - path outside media directory: ${filepath}`);
+      return false;
+    }
+    
     if (existsSync(filepath)) {
       rmSync(filepath);
     }
