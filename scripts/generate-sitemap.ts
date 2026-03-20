@@ -52,8 +52,14 @@ function generateSitemap() {
   if (existsSync(PAGES_DIR)) {
     const files = readdirSync(PAGES_DIR).filter((f: string) => f.endsWith('.md'));
     for (const file of files) {
-      const slug = file.replace('.md', '');
-      urls.push(`<url><loc>${siteUrl}/${slug}/</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>`);
+      try {
+        const content = readFileSync(join(PAGES_DIR, file), 'utf-8');
+        const { data } = extractFrontmatter(content);
+        if (data.published !== false) {
+          const slug = file.replace('.md', '');
+          urls.push(`<url><loc>${siteUrl}/${slug}/</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>`);
+        }
+      } catch (e) {}
     }
   }
 

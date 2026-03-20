@@ -540,7 +540,9 @@ function generateSitemap(): string {
   }
   
   for (const page of pages) {
-    urls.push(`<url><loc>${baseUrl}/${page.slug}/</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>`);
+    if (page.published !== false) {
+      urls.push(`<url><loc>${baseUrl}/${page.slug}/</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>`);
+    }
   }
   
   return `<?xml version="1.0" encoding="UTF-8"?>
