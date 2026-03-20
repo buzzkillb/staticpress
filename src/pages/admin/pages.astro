@@ -144,8 +144,17 @@ const pageTitle = "Pages";
         const content = document.getElementById('page-content').value;
         if (!title) { alert('Title is required!'); return; }
         
-        const page = { title, slug, content };
         const idx = document.getElementById('save-page-btn').dataset.editIndex;
+        const isNewPage = idx === undefined;
+        
+        // Check for duplicate slugs
+        const duplicateSlug = pages.findIndex((p, i) => p.slug === slug && (isNewPage || i !== parseInt(idx)));
+        if (duplicateSlug !== -1) {
+          alert(`A page with slug "${slug}" already exists. Please use a different slug.`);
+          return;
+        }
+        
+        const page = { title, slug, content };
         if (idx !== undefined) pages[idx] = page;
         else pages.push(page);
         
@@ -184,20 +193,16 @@ ${page.content || ''}
       document.getElementById('export-pages-btn').addEventListener('click', () => {
         if (pages.length === 0) { alert('No pages to export!'); return; }
         
-        let output = '';
+let output = '';
         pages.forEach(page => {
           const frontmatter = `---
 title: "${page.title}"
 ---
 
-`;
-          output += `<!-- ${page.slug}.md -->
-${frontmatter}${page.content || ''}
-
-
-
+${page.content || ''}
 
 `;
+          output += frontmatter;
         });
         
         const blob = new Blob([output], { type: 'text/markdown' });

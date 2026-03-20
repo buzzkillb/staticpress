@@ -74,7 +74,7 @@ const pageTitle = "Deploy Settings";
             <p class="text-gray-600 dark:text-gray-300 mb-4">Make sure you've built the site first from Build Site page.</p>
             
             <button id="deploy-btn" class="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition">
-              Deploy Now
+              Show Deploy Command
             </button>
             
             <div id="deploy-output" class="mt-4 bg-gray-900 rounded-lg p-4 hidden">
@@ -93,6 +93,11 @@ const pageTitle = "Deploy Settings";
           </div>
           
           <div class="bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+            <h3 class="font-medium text-yellow-800 dark:text-yellow-200 mb-2">⚠️ Security Warning</h3>
+            <p class="text-sm text-yellow-700 dark:text-yellow-300 mb-2">API tokens stored in browser localStorage are vulnerable to XSS attacks. For production use, keep your token in a config file instead.</p>
+          </div>
+          
+          <div class="bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 mt-4">
             <h3 class="font-medium text-yellow-800 dark:text-yellow-200 mb-2">Getting API Token</h3>
             <ol class="text-sm text-yellow-700 dark:text-yellow-300 space-y-1 list-decimal list-inside">
               <li>Go to <a href="https://dash.cloudflare.com/profile/api-tokens" target="_blank" class="underline">Cloudflare Dashboard</a></li>

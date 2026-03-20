@@ -171,9 +171,18 @@ const pageTitle = "Posts";
         
         if (!title) { alert('Title is required!'); return; }
         
+        const editIndex = document.getElementById('save-post-btn').dataset.editIndex;
+        const isNewPost = editIndex === undefined;
+        
+        // Check for duplicate slugs
+        const duplicateSlug = posts.findIndex((p, i) => p.slug === slug && (isNewPost || i !== parseInt(editIndex)));
+        if (duplicateSlug !== -1) {
+          alert(`A post with slug "${slug}" already exists. Please use a different slug.`);
+          return;
+        }
+        
         const post = { title, slug, excerpt, content, published, date: new Date().toISOString().split('T')[0] };
         
-        const editIndex = document.getElementById('save-post-btn').dataset.editIndex;
         if (editIndex !== undefined) {
           posts[editIndex] = post;
         } else {
@@ -247,7 +256,7 @@ ${post.content || ''}
       document.getElementById('export-posts-btn').addEventListener('click', () => {
         if (posts.length === 0) { alert('No posts to export!'); return; }
         
-        let output = '';
+let output = '';
         posts.forEach(post => {
           const frontmatter = `---
 title: "${post.title}"
@@ -256,14 +265,10 @@ excerpt: "${post.excerpt || ''}"
 published: ${post.published}
 ---
 
-`;
-          output += `<!-- ${post.slug}.md -->
-${frontmatter}${post.content || ''}
-
-
-
+${post.content || ''}
 
 `;
+          output += frontmatter;
         });
         
         // Create download
