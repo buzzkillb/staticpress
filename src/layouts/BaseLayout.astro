@@ -44,19 +44,62 @@ const { title, description = `A static site built with ${SITE_NAME}`, image } = 
         // Apply custom theme CSS - only allow CSS custom properties for safety
         const themeCss = localStorage.getItem('theme_css');
         if (themeCss) {
-          // Only allow lines that are CSS custom properties with safe values
-          // Safe values: hex colors, rgb/rgba, hsl/hsla, numbers with optional units, named colors
+          // Whitelist of safe CSS custom property names
+          const allowedProps = new Set([
+            '--color-primary', '--color-background', '--color-text', '--color-secondary',
+            '--color-accent', '--color-border', '--color-heading', '--color-link',
+            '--color-link-hover', '--color-code-background', '--color-code-text',
+            '--font-family-base', '--font-family-heading', '--font-size-base',
+            '--font-size-sm', '--font-size-lg', '--font-size-xl', '--font-size-2xl',
+            '--font-size-3xl', '--line-height-base', '--line-height-heading',
+            '--spacing-base', '--spacing-sm', '--spacing-md', '--spacing-lg',
+            '--spacing-xl', '--spacing-2xl', '--border-radius', '--border-radius-sm',
+            '--border-radius-md', '--border-radius-lg', '--border-radius-full',
+            '--shadow-sm', '--shadow-md', '--shadow-lg', '--shadow-xl',
+            '--transition-fast', '--transition-normal', '--transition-slow'
+          ]);
+          
+          // Strict value patterns - no semicolons or special characters allowed
+          const safeValuePatterns = [
+            /^#[0-9a-fA-F]{3,8}$/,
+            /^rgb\(\s*(\d{1,3}\s*,\s*){2}\d{1,3}\s*\)$/,
+            /^rgba\(\s*(\d{1,3}\s*,\s*){3}(\d*\.\d+|\d)\s*\)$/,
+            /^hsl\(\s*(\d{1,3}\s*,\s*\d{1,3}%\s*,\s*\d{1,3}%)\s*\)$/,
+            /^hsla\(\s*(\d{1,3}\s*,\s*\d{1,3}%\s*,\s*\d{1,3}%\s*,\s*(\d*\.\d+|\d)\s*\)$/,
+            /^(\d+\.)?\d+(px|em|rem|%|vh|vw|pt|ex|ch|mm|cm)?$/,
+            /^(inherit|initial|unset|none|transparent|auto)$/
+          ];
+          
           const lines = themeCss.split(';');
           const validVars = [];
           for (const line of lines) {
             const trimmed = line.trim();
-            // Only allow CSS custom properties with strict value validation
-            // Value must be: hex color, rgb/rgba, hsl/hsla, numbers, or safe keyword
-            const cssVarPattern = /^--([\w-]+):\s*(#[0-9a-fA-F]{3,8}|rgb\([^)]+\)|rgba\([^)]+\)|hsl\([^)]+\)|hsla\([^)]+\)|[\d.]+(?:px|em|rem|%|vh|vw)?|none|inherit|initial|unset)$/;
-            if (cssVarPattern.test(trimmed)) {
-              validVars.push(trimmed);
+            if (!trimmed) continue;
+            
+            // Parse property name (between -- and :)
+            const colonIndex = trimmed.indexOf(':');
+            if (colonIndex === -1) continue;
+            
+            const propName = trimmed.substring(0, colonIndex);
+            const propValue = trimmed.substring(colonIndex + 1).trim();
+            
+            // Check if property is whitelisted
+            if (!allowedProps.has(propName)) continue;
+            
+            // Check if value matches safe patterns
+            let valueSafe = false;
+            for (const pattern of safeValuePatterns) {
+              if (pattern.test(propValue)) {
+                valueSafe = true;
+                break;
+              }
+            }
+            
+            if (valueSafe) {
+              validVars.push(`${propName}: ${propValue}`);
             }
           }
+          
           if (validVars.length > 0) {
             const style = document.createElement('style');
             style.textContent = ':root { ' + validVars.join('; ') + ' }';
