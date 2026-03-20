@@ -15,7 +15,7 @@ This is your first blog post! You can edit this in the admin panel.
 2. Use the markdown editor to write content
 3. Export your posts and copy to `src/content/posts/`
 4. Run `bun run build` to generate the static site
-5. Deploy to Cloudflare Pages with `npx wrangler pages deploy dist`
+5. Deploy to Cloudflare Pages with `bunx wrangler pages deploy dist`
 
 ## Features
 

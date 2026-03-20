@@ -17,7 +17,7 @@ StaticPress is a local-first static site generator that lets you create websites
 ## Tech Stack
 
 - **Astro** - Static site generator
-- **React** - Interactive admin UI
+- **Vanilla JS** - Interactive admin UI
 - **Tailwind CSS** - Styling
 - **Bun** - Runtime
 - **Cloudflare Pages** - Deployment
