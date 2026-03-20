@@ -218,7 +218,6 @@ document.getElementById('deploy-btn').addEventListener('click', async () => {
         const logs = document.getElementById('deploy-logs');
         
         btn.disabled = true;
-        btn.textContent = 'Preparing...';
         output.classList.remove('hidden');
         
         const fullCommand = `CF_API_TOKEN=${token} CF_ACCOUNT_ID=${account} bunx wrangler pages deploy dist --project-name=${project}`;
@@ -257,8 +256,8 @@ document.getElementById('deploy-btn').addEventListener('click', async () => {
       const sunIcon = document.getElementById('sun-icon'), moonIcon = document.getElementById('moon-icon'), themeText = document.getElementById('theme-text');
       function updateIcons() {
         const isDark = document.documentElement.classList.contains('dark');
-        if (isDark) { sunIcon.classList.remove('hidden'); moonIcon.classList.add('hidden'); themeText.textContent = 'Light Mode'; } 
-        else { sunIcon.classList.add('hidden'); moonIcon.classList.remove('hidden'); themeText.textContent = 'Dark Mode'; }
+        if (isDark) { sunIcon.classList.remove('hidden'); moonIcon.classList.add('hidden'); themeText.textContent = 'Switch to Light'; } 
+        else { sunIcon.classList.add('hidden'); moonIcon.classList.remove('hidden'); themeText.textContent = 'Switch to Dark'; }
       }
       toggle?.addEventListener('click', () => {
         const isDark = document.documentElement.classList.contains('dark');

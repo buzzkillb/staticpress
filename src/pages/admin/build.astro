@@ -87,8 +87,8 @@ const pageTitle = "Build Site";
       const sunIcon = document.getElementById('sun-icon'), moonIcon = document.getElementById('moon-icon'), themeText = document.getElementById('theme-text');
       function updateIcons() {
         const isDark = document.documentElement.classList.contains('dark');
-        if (isDark) { sunIcon.classList.remove('hidden'); moonIcon.classList.add('hidden'); themeText.textContent = 'Light Mode'; } 
-        else { sunIcon.classList.add('hidden'); moonIcon.classList.remove('hidden'); themeText.textContent = 'Dark Mode'; }
+        if (isDark) { sunIcon.classList.remove('hidden'); moonIcon.classList.add('hidden'); themeText.textContent = 'Switch to Light'; } 
+        else { sunIcon.classList.add('hidden'); moonIcon.classList.remove('hidden'); themeText.textContent = 'Switch to Dark'; }
       }
       toggle?.addEventListener('click', () => {
         const isDark = document.documentElement.classList.contains('dark');

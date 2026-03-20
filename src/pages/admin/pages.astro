@@ -176,7 +176,7 @@ const pageTitle = "Pages";
         const title = document.getElementById('page-title').value;
         const slug = document.getElementById('page-slug').value || title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
         const content = document.getElementById('page-content').value;
-        if (!title) { alert('Title is required!'); return; }
+        if (!title || !title.trim()) { alert('Title is required!'); return; }
         
         const idx = document.getElementById('save-page-btn').dataset.editIndex;
         const existingIndex = idx !== undefined ? parseInt(idx) : -1;
@@ -232,8 +232,8 @@ const pageTitle = "Pages";
       const sunIcon = document.getElementById('sun-icon'), moonIcon = document.getElementById('moon-icon'), themeText = document.getElementById('theme-text');
       function updateIcons() {
         const isDark = document.documentElement.classList.contains('dark');
-        if (isDark) { sunIcon.classList.remove('hidden'); moonIcon.classList.add('hidden'); themeText.textContent = 'Light Mode'; } 
-        else { sunIcon.classList.add('hidden'); moonIcon.classList.remove('hidden'); themeText.textContent = 'Dark Mode'; }
+        if (isDark) { sunIcon.classList.remove('hidden'); moonIcon.classList.add('hidden'); themeText.textContent = 'Switch to Light'; } 
+        else { sunIcon.classList.add('hidden'); moonIcon.classList.remove('hidden'); themeText.textContent = 'Switch to Dark'; }
       }
       toggle?.addEventListener('click', () => {
         const isDark = document.documentElement.classList.contains('dark');
