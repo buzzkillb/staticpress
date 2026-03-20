@@ -1,0 +1,56 @@
+---
+import { getCollection, render } from 'astro:content';
+import '../styles/global.css';
+
+export async function getStaticPaths() {
+  const pages = await getCollection('pages');
+  return pages.map(page => ({
+    params: { slug: page.id },
+    props: { page },
+  }));
+}
+
+const { page } = Astro.props;
+const { Content } = await render(page);
+---
+
+<!DOCTYPE html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{page.data.title} | StaticPress</title>
+    <meta name="description" content={page.data.excerpt || page.data.title} />
+    <script is:inline>
+      if (localStorage.getItem('theme') === 'light') document.documentElement.classList.remove('dark');
+      else document.documentElement.classList.add('dark');
+    </script>
+  </head>
+  <body class="bg-gray-100 dark:bg-gray-900 transition-colors">
+    <header class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+      <div class="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
+        <a href="/" class="text-xl font-bold text-gray-900 dark:text-white">StaticPress</a>
+        <nav class="flex gap-4">
+          <a href="/" class="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">Home</a>
+          <a href="/blog" class="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">Blog</a>
+        </nav>
+      </div>
+    </header>
+    
+    <main class="max-w-4xl mx-auto px-4 py-8">
+      <article class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-8">
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-8">{page.data.title}</h1>
+        
+        <div class="prose prose-gray dark:prose-invert max-w-none">
+          <Content />
+        </div>
+      </article>
+    </main>
+    
+    <footer class="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 mt-12">
+      <div class="max-w-4xl mx-auto py-6 text-center text-gray-600 dark:text-gray-400">
+        Built with StaticPress
+      </div>
+    </footer>
+  </body>
+</html>

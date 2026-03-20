@@ -32,9 +32,14 @@ const { title, description = 'A static site built with StaticPress', image } = A
     <meta name="twitter:description" content={description} />
     {image && <meta name="twitter:image" content={image} />}
     
-    <!-- Custom Theme CSS from Admin -->
+    <!-- Theme and Custom CSS -->
     <script is:inline>
       (function() {
+        // Apply theme
+        if (localStorage.getItem('theme') === 'light') document.documentElement.classList.remove('dark');
+        else document.documentElement.classList.add('dark');
+        
+        // Apply custom theme CSS
         const themeCss = localStorage.getItem('theme_css');
         if (themeCss) {
           const style = document.createElement('style');
