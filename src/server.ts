@@ -13,6 +13,37 @@ const DIST_DIR = join(ROOT, 'dist');
 const ADMIN_DIR = join(ROOT, 'admin');
 const MEDIA_DIR = join(ROOT, 'public', 'media');
 
+const PLACEHOLDER_SITE = 'https://yoursite.com';
+
+interface SiteConfig {
+  siteUrl: string;
+  formspreeId: string;
+  siteName: string;
+  author: string;
+}
+
+function loadSiteConfig(): SiteConfig {
+  const configPath = join(ROOT, 'site.config.json');
+  const defaultConfig = {
+    siteUrl: PLACEHOLDER_SITE,
+    formspreeId: 'YOUR_FORMSPREE_ID',
+    siteName: 'My Site',
+    author: 'Site Author',
+  };
+  
+  if (!existsSync(configPath)) {
+    return defaultConfig;
+  }
+  try {
+    const content = readFileSync(configPath, 'utf-8');
+    return JSON.parse(content) as SiteConfig;
+  } catch {
+    return defaultConfig;
+  }
+}
+
+const siteConfig = loadSiteConfig();
+
 interface Cache {
   posts: any[];
   pages: any[];
@@ -447,23 +478,17 @@ async function handleAPI(url: URL, method: string, request: Request): Promise<Re
             return Response.json({ error: 'Only images are allowed' }, { status: 400 });
           }
           
+          if (file.type.includes('svg')) {
+            return Response.json({ error: 'SVG files are not allowed for security reasons' }, { status: 400 });
+          }
+          
           if (file.data.length > 10 * 1024 * 1024) {
             return Response.json({ error: 'File too large (max 10MB)' }, { status: 400 });
           }
           
-          let buffer = file.data;
-          let filename = file.name;
-          
-          // Convert SVG to WebP to prevent XSS attacks in SVG content
-          if (file.type.includes('svg')) {
-            const compressed = await compressImage(file.data, file.name);
-            buffer = compressed.buffer;
-            filename = compressed.filename;
-          } else {
-            const compressed = await compressImage(file.data, file.name);
-            buffer = compressed.buffer;
-            filename = compressed.filename;
-          }
+          const compressed = await compressImage(file.data, file.name);
+          let buffer = compressed.buffer;
+          let filename = compressed.filename;
           
           const uniqueName = `${Date.now()}-${filename.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
           const filepath = join(MEDIA_DIR, uniqueName);
@@ -493,14 +518,14 @@ async function handleAPI(url: URL, method: string, request: Request): Promise<Re
   return Response.json({ error: 'Not found' }, { status: 404 });
 }
 
-const PLACEHOLDER_SITE = 'https://yoursite.com';
-
 function generateSitemap(): string {
   const { posts, pages } = importExistingContent();
-  const baseUrl = PLACEHOLDER_SITE;
+  const baseUrl = siteConfig.siteUrl;
   
-  console.warn('\n⚠️  Warning: Site URL is still set to placeholder value "https://yoursite.com"');
-  console.warn('   Update site.config.json before deploying.\n');
+  if (baseUrl === PLACEHOLDER_SITE) {
+    console.warn('\n⚠️  Warning: Site URL is still set to placeholder value "https://yoursite.com"');
+    console.warn('   Update site.config.json before deploying.\n');
+  }
   
   const urls: string[] = [
     `<url><loc>${baseUrl}/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>`,
