@@ -53,16 +53,16 @@ const pageTitle = "Code Theme";
       </main>
     </div>
     <script is:inline>
-      const defaultCSS = `/* Theme Styles */
+      const defaultCSS = `/* Theme CSS - Only CSS custom properties are applied */
+/* Available properties: --color-primary, --color-background, --color-text, --color-secondary, --color-accent, --color-border, --color-heading, --color-link, --color-link-hover, --color-code-background, --color-code-text, --font-family-base, --font-family-heading, --font-size-*, --spacing-*, --border-radius-*, --shadow-* */
 :root {
   --color-primary: #3b82f6;
   --color-background: #ffffff;
   --color-text: #1f2937;
-}
-body {
-  font-family: system-ui, sans-serif;
-  background-color: var(--color-background);
-  color: var(--color-text);
+  --color-secondary: #6b7280;
+  --color-accent: #10b981;
+  --spacing-base: 1rem;
+  --border-radius: 0.5rem;
 }`;
       const editor = document.getElementById('css-editor');
       if (editor) editor.value = localStorage.getItem('theme_css') || defaultCSS;
