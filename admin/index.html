@@ -522,7 +522,7 @@
               method: 'POST',
               body: JSON.stringify({ content }),
             });
-            const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{font-family:system-ui;padding:2rem;max-width:800px;margin:0 auto;background:#fff;color:#1f2937;dark){background:#111827;color:#f9fafb;}}}</style></head><body>${result.html}</body></html>`;
+            const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{font-family:system-ui;padding:2rem;max-width:800px;margin:0 auto;background:#fff;color:#1f2937}@media(prefers-color-scheme:dark){body{background:#111827;color:#f9fafb}}</style></head><body>${result.html}</body></html>`;
             iframe.srcdoc = html;
           } catch (e) {}
         }
