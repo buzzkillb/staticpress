@@ -184,6 +184,12 @@
                   🚀 Deploy
                 </button>
               </div>
+              <div class="pt-4 border-t border-gray-800 mt-4">
+                <p class="text-xs text-gray-500 uppercase px-4 mb-2">Config</p>
+                <button onclick="navigate('settings')" class="w-full text-left px-4 py-2 rounded hover:bg-gray-800 ${state.currentView === 'settings' ? 'bg-gray-800' : ''}">
+                  ⚙️ Settings
+                </button>
+              </div>
             </nav>
             <div class="p-4 border-t border-gray-800">
               <button onclick="toggleTheme()" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-400 hover:text-white w-full rounded hover:bg-gray-800">
@@ -204,9 +210,23 @@
       if (state.currentItem !== null) {
         initEditor();
       }
-      
+       
       if (state.mediaModalOpen) {
         renderMediaModal();
+      }
+      
+      // Populate settings fields when settings view is shown
+      if (state.currentView === 'settings') {
+        setTimeout(() => {
+          document.getElementById('settings-site-url').value = localStorage.getItem('site_url') || '';
+          document.getElementById('settings-formspree-id').value = localStorage.getItem('formspree_id') || '';
+          document.getElementById('settings-cf-project').value = localStorage.getItem('cf_project') || '';
+          document.getElementById('settings-cf-account').value = localStorage.getItem('cf_account') || '';
+          const cfToken = localStorage.getItem('cf_token') || '';
+          if (cfToken) {
+            document.getElementById('settings-cf-token').value = cfToken;
+          }
+        }, 0);
       }
     }
 
@@ -217,6 +237,7 @@
       if (state.currentView === 'posts') return renderList('posts', state.posts);
       if (state.currentView === 'pages') return renderList('pages', state.pages);
       if (state.currentView === 'media') return renderMediaLibrary();
+      if (state.currentView === 'settings') return renderSettings();
       return renderDashboard();
     }
 
@@ -301,6 +322,73 @@
                 </div>
               </div>
             `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderSettings() {
+      return `
+        <div class="p-8 flex-1 overflow-auto">
+          <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-8">Settings</h1>
+          
+          <!-- Site Configuration -->
+          <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-6">
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Site Configuration</h2>
+            <p class="text-gray-600 dark:text-gray-300 text-sm mb-4">These settings are used for SEO, sitemap, and contact form.</p>
+            
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Site URL</label>
+                <input type="url" id="settings-site-url" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg" placeholder="https://example.com" />
+              </div>
+              
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Formspree Form ID <a href="https://formspree.io" target="_blank" class="text-blue-500 text-xs">(Get Free Form →)</a></label>
+                <input type="text" id="settings-formspree-id" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg" placeholder="xyzabc123" />
+              </div>
+              
+              <button onclick="saveSiteSettings()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Save Site Settings</button>
+            </div>
+          </div>
+          
+          <!-- Cloudflare Configuration -->
+          <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-6">
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Cloudflare Pages Configuration</h2>
+            
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Project Name</label>
+                <input type="text" id="settings-cf-project" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg" placeholder="my-static-site" />
+              </div>
+               
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">API Token <a href="https://dash.cloudflare.com/profile/api-tokens" target="_blank" class="text-blue-500 text-xs">(Get Token →)</a></label>
+                <input type="password" id="settings-cf-token" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg" placeholder="toke****oken" />
+              </div>
+               
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Account ID</label>
+                <input type="text" id="settings-cf-account" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg" placeholder="Your Cloudflare Account ID" />
+              </div>
+               
+              <button onclick="saveCloudflareSettings()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Save Cloudflare Settings</button>
+            </div>
+          </div>
+          
+          <!-- Config File -->
+          <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-6">
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Save/Load Configuration</h2>
+            <p class="text-gray-600 dark:text-gray-300 mb-4 text-sm">Save all settings to a config file.</p>
+            <div class="flex gap-3">
+              <button onclick="loadConfigFile()" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">Load Config</button>
+              <button onclick="saveConfigFile()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">Save Config</button>
+            </div>
+          </div>
+          
+          <div class="bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+            <h3 class="font-medium text-yellow-800 dark:text-yellow-200 mb-2">⚠️ Note</h3>
+            <p class="text-sm text-yellow-700 dark:text-yellow-300">After changing settings, rebuild the site for changes to take effect.</p>
           </div>
         </div>
       `;
@@ -804,6 +892,105 @@
       } catch (e) {
         showToast('Deploy failed', 'error');
       }
+    };
+
+    window.saveSiteSettings = function() {
+      const siteUrl = document.getElementById('settings-site-url').value.trim();
+      const formspreeId = document.getElementById('settings-formspree-id').value.trim();
+      
+      if (!siteUrl) {
+        showToast('Site URL is required', 'error');
+        return;
+      }
+      
+      localStorage.setItem('site_url', siteUrl);
+      localStorage.setItem('formspree_id', formspreeId);
+      showToast('Site settings saved!', 'success');
+    };
+
+    window.saveCloudflareSettings = function() {
+      const project = document.getElementById('settings-cf-project').value.trim();
+      const token = document.getElementById('settings-cf-token').value.trim();
+      const account = document.getElementById('settings-cf-account').value.trim();
+      
+      if (!project || !token || !account) {
+        showToast('Please fill in all Cloudflare fields', 'error');
+        return;
+      }
+      
+      localStorage.setItem('cf_project', project);
+      localStorage.setItem('cf_token', token);
+      localStorage.setItem('cf_account', account);
+      showToast('Cloudflare settings saved!', 'success');
+    };
+
+    window.saveConfigFile = function() {
+      const siteUrl = localStorage.getItem('site_url') || '';
+      const formspreeId = localStorage.getItem('formspree_id') || '';
+      const cfProject = localStorage.getItem('cf_project') || '';
+      const cfToken = localStorage.getItem('cf_token') || '';
+      const cfAccount = localStorage.getItem('cf_account') || '';
+      
+      const config = {
+        siteUrl,
+        formspreeId,
+        cloudflare: {
+          project: cfProject,
+          token: cfToken,
+          account: cfAccount
+        }
+      };
+      
+      const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'staticpress-config.json';
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('Config file downloaded', 'success');
+    };
+
+    window.loadConfigFile = function() {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.json';
+      input.onchange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        const text = await file.text();
+        try {
+          const config = JSON.parse(text);
+          
+          if (config.siteUrl) {
+            localStorage.setItem('site_url', config.siteUrl);
+            document.getElementById('settings-site-url').value = config.siteUrl;
+          }
+          if (config.formspreeId) {
+            localStorage.setItem('formspree_id', config.formspreeId);
+            document.getElementById('settings-formspree-id').value = config.formspreeId;
+          }
+          if (config.cloudflare) {
+            if (config.cloudflare.project) {
+              localStorage.setItem('cf_project', config.cloudflare.project);
+              document.getElementById('settings-cf-project').value = config.cloudflare.project;
+            }
+            if (config.cloudflare.account) {
+              localStorage.setItem('cf_account', config.cloudflare.account);
+              document.getElementById('settings-cf-account').value = config.cloudflare.account;
+            }
+            if (config.cloudflare.token) {
+              localStorage.setItem('cf_token', config.cloudflare.token);
+              document.getElementById('settings-cf-token').value = config.cloudflare.token;
+            }
+          }
+          showToast('Config loaded successfully!', 'success');
+        } catch (err) {
+          showToast('Invalid config file', 'error');
+        }
+      };
+      input.click();
     };
 
     window.toggleTheme = function() {
