@@ -499,7 +499,7 @@
                 <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Preview</span>
               </div>
               ${state.previewMode === 'iframe' ? `
-                <iframe id="preview-iframe" class="preview-iframe" sandbox="allow-same-origin" srcdoc="<html><body style='font-family:system-ui;padding:2rem;'><p class='text-gray-500'>Save to see preview...</p></body></html>"></iframe>
+                <iframe id="preview-iframe" class="preview-iframe" sandbox="allow-scripts" srcdoc="<html><body style='font-family:system-ui;padding:2rem;'><p class='text-gray-500'>Save to see preview...</p></body></html>"></iframe>
               ` : `
                 <div id="preview-html" class="p-6 bg-white dark:bg-gray-800 min-h-[400px] overflow-auto prose dark:prose-invert max-w-none">
                   <p class="text-gray-500">Save to see preview...</p>

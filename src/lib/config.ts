@@ -37,5 +37,40 @@ export const SITE_NAME = config.siteName;
 export const AUTHOR = config.author;
 
 export function isProduction(): boolean {
-  return SITE_URL !== 'https://yoursite.com' && !SITE_URL.includes('localhost');
+  if (SITE_URL === 'https://yoursite.com' || SITE_URL.includes('localhost')) {
+    return false;
+  }
+  
+  try {
+    const url = new URL(SITE_URL);
+    
+    if (url.protocol !== 'https:') {
+      return false;
+    }
+    
+    const hostname = url.hostname;
+    
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      return false;
+    }
+    
+    if (hostname.endsWith('.local')) {
+      return false;
+    }
+    
+    const ipPattern = /^(\d{1,3}\.){3}\d{1,3}$/;
+    if (ipPattern.test(hostname)) {
+      const parts = hostname.split('.').map(Number);
+      if (parts[0] === 10 || 
+          (parts[0] === 172 && parts[1] >= 16 && parts[1] <= 31) ||
+          (parts[0] === 192 && parts[1] === 168) ||
+          parts[0] === 127) {
+        return false;
+      }
+    }
+    
+    return true;
+  } catch {
+    return false;
+  }
 }
