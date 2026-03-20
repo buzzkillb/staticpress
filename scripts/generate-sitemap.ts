@@ -2,15 +2,17 @@
 import { readdirSync, readFileSync, writeFileSync, existsSync } from 'fs';
 import { join } from 'path';
 import yaml from 'js-yaml';
+import { loadConfig } from './config';
 
-const ROOT = join(process.cwd());
+const ROOT = process.cwd();
 const DIST_DIR = join(ROOT, 'dist');
 const POSTS_DIR = join(ROOT, 'src', 'content', 'posts');
 const PAGES_DIR = join(ROOT, 'src', 'content', 'pages');
-const SITE_URL = 'https://yoursite.com';
-const PLACEHOLDER_URL = 'https://yoursite.com';
 
-function extractFrontmatter(content) {
+const config = loadConfig();
+const { siteUrl } = config;
+
+function extractFrontmatter(content: string): { data: Record<string, unknown>; body: string } {
   const frontmatterRegex = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/;
   const match = content.match(frontmatterRegex);
   if (!match) return { data: {}, body: content };
@@ -19,7 +21,7 @@ function extractFrontmatter(content) {
   const body = match[2] || '';
 
   try {
-    const data = yaml.load(frontmatterStr) || {};
+    const data = yaml.load(frontmatterStr) as Record<string, unknown> || {};
     return { data, body };
   } catch (e) {
     return { data: {}, body };
@@ -27,36 +29,31 @@ function extractFrontmatter(content) {
 }
 
 function generateSitemap() {
-  if (SITE_URL === PLACEHOLDER_URL) {
-    console.warn('\n⚠️  Warning: Site URL is still set to placeholder value "https://yoursite.com"');
-    console.warn('   Update the SITE_URL constant in scripts/generate-sitemap.ts before deploying.\n');
-  }
-  
-  const urls = [
-    `<url><loc>${SITE_URL}/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>`,
-    `<url><loc>${SITE_URL}/blog/</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>`,
+  const urls: string[] = [
+    `<url><loc>${siteUrl}/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>`,
+    `<url><loc>${siteUrl}/blog/</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>`,
   ];
 
   if (existsSync(POSTS_DIR)) {
-    const files = readdirSync(POSTS_DIR).filter(f => f.endsWith('.md'));
+    const files = readdirSync(POSTS_DIR).filter((f: string) => f.endsWith('.md'));
     for (const file of files) {
       try {
         const content = readFileSync(join(POSTS_DIR, file), 'utf-8');
         const { data } = extractFrontmatter(content);
         if (data.published !== false) {
           const slug = file.replace('.md', '');
-          const lastmod = data.date ? new Date(data.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
-          urls.push(`<url><loc>${SITE_URL}/blog/${slug}/</loc><lastmod>${lastmod}</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>`);
+          const lastmod = data.date ? new Date(data.date as string).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+          urls.push(`<url><loc>${siteUrl}/blog/${slug}/</loc><lastmod>${lastmod}</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>`);
         }
       } catch (e) {}
     }
   }
 
   if (existsSync(PAGES_DIR)) {
-    const files = readdirSync(PAGES_DIR).filter(f => f.endsWith('.md'));
+    const files = readdirSync(PAGES_DIR).filter((f: string) => f.endsWith('.md'));
     for (const file of files) {
       const slug = file.replace('.md', '');
-      urls.push(`<url><loc>${SITE_URL}/${slug}/</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>`);
+      urls.push(`<url><loc>${siteUrl}/${slug}/</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>`);
     }
   }
 

@@ -493,9 +493,14 @@ async function handleAPI(url: URL, method: string, request: Request): Promise<Re
   return Response.json({ error: 'Not found' }, { status: 404 });
 }
 
+const PLACEHOLDER_SITE = 'https://yoursite.com';
+
 function generateSitemap(): string {
   const { posts, pages } = importExistingContent();
-  const baseUrl = 'https://yoursite.com';
+  const baseUrl = PLACEHOLDER_SITE;
+  
+  console.warn('\n⚠️  Warning: Site URL is still set to placeholder value "https://yoursite.com"');
+  console.warn('   Update site.config.json before deploying.\n');
   
   const urls: string[] = [
     `<url><loc>${baseUrl}/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>`,

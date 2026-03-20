@@ -1,13 +1,14 @@
 ---
 import { getCollection } from 'astro:content';
 import '../../styles/global.css';
+import { SITE_URL } from '../../lib/config';
 
 const posts = await getCollection('posts');
 const publishedPosts = posts
   .filter(post => post.data.published)
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 
-const siteUrl = 'https://yoursite.com'; // Configure this
+const siteUrl = SITE_URL;
 ---
 
 <!DOCTYPE html>

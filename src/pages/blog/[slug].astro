@@ -1,6 +1,7 @@
 ---
 import { getCollection, render } from 'astro:content';
 import '../../styles/global.css';
+import { SITE_URL } from '../../lib/config';
 
 export async function getStaticPaths() {
   const posts = await getCollection('posts');
@@ -16,7 +17,7 @@ const { post } = Astro.props;
 const { Content } = await render(post);
 const { title, excerpt, date } = post.data;
 
-const siteUrl = 'https://yoursite.com'; // Configure this
+const siteUrl = SITE_URL;
 const canonicalUrl = `${siteUrl}/blog/${post.id}/`;
 const ogImage = `${siteUrl}/og-image.png`; // Optional: generate OG images
 ---
