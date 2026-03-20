@@ -1,6 +1,7 @@
 #!/usr/bin/env bun
 import { readdirSync, readFileSync, writeFileSync, existsSync } from 'fs';
 import { join } from 'path';
+import yaml from 'js-yaml';
 
 const ROOT = join(process.cwd());
 const DIST_DIR = join(ROOT, 'dist');
@@ -17,7 +18,6 @@ function extractFrontmatter(content) {
   const body = match[2] || '';
 
   try {
-    const yaml = require('js-yaml');
     const data = yaml.load(frontmatterStr) || {};
     return { data, body };
   } catch (e) {

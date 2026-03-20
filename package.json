@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "bun run src/server.ts",
-    "build": "astro build && bun run scripts/generate-sitemap.ts",
+    "build": "bun run scripts/bundle-admin.ts && astro build && bun run scripts/copy-admin.ts && bun run scripts/generate-sitemap.ts",
+    "bundle": "bun run scripts/bundle-admin.ts",
     "preview": "bunx wrangler pages dev dist",
     "deploy": "bunx wrangler pages deploy dist"
   },

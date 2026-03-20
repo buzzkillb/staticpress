@@ -1,5 +1,5 @@
 import { renderMarkdown, extractFrontmatter, formatFrontmatter, slugify } from './lib/markdown';
-import { readFileSync, writeFileSync, existsSync, readdirSync, mkdirSync, rmSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync, readdirSync, mkdirSync, rmSync, renameSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { spawn } from 'child_process';
@@ -164,11 +164,26 @@ async function compressImage(inputBuffer: Buffer, filename: string): Promise<{ b
   }
 }
 
+const MAX_CONTENT_SIZE = 1 * 1024 * 1024; // 1MB limit
+
 function writeContentFile(type: 'post' | 'page', slug: string, data: any, content: string): boolean {
   try {
+    // Validate content size
+    if (content.length > MAX_CONTENT_SIZE) {
+      console.error(`Content too large for ${type} ${slug}: ${content.length} bytes`);
+      return false;
+    }
+    
+    // Validate slug format (alphanumeric, dash, underscore only)
+    if (!/^[a-zA-Z0-9_-]+$/.test(slug)) {
+      console.error(`Invalid slug format: ${slug}`);
+      return false;
+    }
+    
     const dir = type === 'post' ? POSTS_DIR : PAGES_DIR;
     const filename = `${slug}.md`;
     const filepath = join(dir, filename);
+    const tempFilepath = join(dir, `.${filename}.tmp`);
     
     const frontmatter: Record<string, any> = {
       title: data.title || slug,
@@ -178,7 +193,12 @@ function writeContentFile(type: 'post' | 'page', slug: string, data: any, conten
     };
     
     const fileContent = formatFrontmatter(frontmatter, content);
-    writeFileSync(filepath, fileContent, 'utf-8');
+    
+    // Atomic write: write to temp file first, then rename
+    writeFileSync(tempFilepath, fileContent, 'utf-8');
+    rmSync(filepath); // Remove old file if exists
+    renameSync(tempFilepath, filepath); // Atomic rename
+    
     invalidateCache();
     return true;
   } catch (e) {
@@ -406,7 +426,7 @@ async function handleAPI(url: URL, method: string, request: Request): Promise<Re
   if (pathname === '/api/render' && method === 'POST') {
     const body = await parseBody<{ content: string }>(request);
     const html = renderMarkdown(body.content || '');
-    return Response.json({ html });
+    return Response.json({ html, sanitized: html });
   }
   
   if (pathname === '/api/media' && method === 'GET') {
@@ -498,15 +518,17 @@ async function server(port: number = 4321) {
   const initialContent = importExistingContent();
   console.log(`Imported ${initialContent.posts.length} posts and ${initialContent.pages.length} pages`);
   
-  console.log(`StaticPress server running at http://localhost:${port}`);
-  console.log(`Admin UI: http://localhost:${port}/admin/`);
+  console.log(`StaticPress server running at http://127.0.0.1:${port}`);
+  console.log(`Admin UI: http://127.0.0.1:${port}/admin/`);
   
   Bun.serve({
     port,
+    hostname: '127.0.0.1',
     async fetch(request) {
       const url = new URL(request.url);
       const pathname = url.pathname;
       
+      // API endpoints are protected - only allow from localhost
       if (pathname.startsWith('/api/')) {
         const host = request.headers.get('host') || '';
         const isLocalhost = host.includes('localhost') || host.includes('127.0.0.1');
