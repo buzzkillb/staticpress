@@ -1,11 +1,13 @@
 ---
+import { SITE_NAME } from '../lib/config';
+
 interface Props {
   title: string;
   description?: string;
   image?: string;
 }
 
-const { title, description = 'A static site built with StaticPress', image } = Astro.props;
+const { title, description = `A static site built with ${SITE_NAME}`, image } = Astro.props;
 ---
 
 <!DOCTYPE html>
@@ -24,7 +26,7 @@ const { title, description = 'A static site built with StaticPress', image } = A
     {image && <meta property="og:image" content={image} />}
     <meta property="og:url" content={Astro.url.href} />
     <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="StaticPress" />
+    <meta property="og:site_name" content={SITE_NAME} />
     
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />

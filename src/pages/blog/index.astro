@@ -1,7 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 import '../../styles/global.css';
-import { SITE_URL } from '../../lib/config';
+import { SITE_URL, SITE_NAME } from '../../lib/config';
 
 const posts = await getCollection('posts');
 const publishedPosts = posts
@@ -18,21 +18,21 @@ const siteUrl = SITE_URL;
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     
     <!-- Primary SEO -->
-    <title>Blog | StaticPress</title>
-    <meta name="description" content="Articles and updates from StaticPress" />
+    <title>Blog | {SITE_NAME}</title>
+    <meta name="description" content={`Articles and updates from ${SITE_NAME}`} />
     <link rel="canonical" href={`${siteUrl}/blog/`} />
     
     <!-- Open Graph -->
-    <meta property="og:title" content="Blog | StaticPress" />
-    <meta property="og:description" content="Articles and updates from StaticPress" />
+    <meta property="og:title" content={`Blog | ${SITE_NAME}`} />
+    <meta property="og:description" content={`Articles and updates from ${SITE_NAME}`} />
     <meta property="og:url" content={`${siteUrl}/blog/`} />
     <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="StaticPress" />
+    <meta property="og:site_name" content={SITE_NAME} />
     
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary" />
-    <meta name="twitter:title" content="Blog | StaticPress" />
-    <meta name="twitter:description" content="Articles and updates from StaticPress" />
+    <meta name="twitter:title" content={`Blog | ${SITE_NAME}`} />
+    <meta name="twitter:description" content={`Articles and updates from ${SITE_NAME}`} />
     
     <!-- Robots -->
     <meta name="robots" content="index, follow" />
@@ -46,7 +46,7 @@ const siteUrl = SITE_URL;
   <body class="bg-gray-50 dark:bg-gray-900 transition-colors">
     <header class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
       <div class="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
-        <a href="/" class="text-xl font-bold text-gray-900 dark:text-white">StaticPress</a>
+        <a href="/" class="text-xl font-bold text-gray-900 dark:text-white">{SITE_NAME}</a>
         <nav class="flex gap-4">
           <a href="/" class="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">Home</a>
           <a href="/blog" class="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">Blog</a>
@@ -88,7 +88,7 @@ const siteUrl = SITE_URL;
     
     <footer class="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 mt-12">
       <div class="max-w-4xl mx-auto py-6 text-center text-gray-600 dark:text-gray-400">
-        <p>Built with <a href="https://github.com/buzzkillb/staticpress" class="text-blue-600 hover:underline">StaticPress</a></p>
+        <p>Built with <a href="https://github.com/buzzkillb/staticpress" class="text-blue-600 hover:underline">{SITE_NAME}</a></p>
       </div>
     </footer>
   </body>

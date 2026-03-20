@@ -1,5 +1,6 @@
 ---
 import BaseLayout from './BaseLayout.astro';
+import { SITE_NAME } from '../lib/config';
 
 interface Props {
   title: string;
@@ -81,7 +82,7 @@ const { title, description, image, showNav = true } = Astro.props;
   {showNav && (
     <header>
       <div class="container" style="display: flex; justify-content: space-between; align-items: center;">
-        <a href="/" class="logo">StaticPress</a>
+        <a href="/" class="logo">{SITE_NAME}</a>
         <nav>
           <a href="/blog">Blog</a>
           <a href="/about">About</a>
@@ -97,7 +98,7 @@ const { title, description, image, showNav = true } = Astro.props;
   
   <footer>
     <div class="container">
-      <p>&copy; {new Date().getFullYear()} Your Site. Built with <a href="https://github.com/buzzkillb/staticpress">StaticPress</a></p>
+      <p>&copy; {new Date().getFullYear()} {SITE_NAME}. Built with <a href="https://github.com/buzzkillb/staticpress">StaticPress</a></p>
     </div>
   </footer>
 </BaseLayout>
