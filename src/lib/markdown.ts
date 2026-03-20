@@ -1,6 +1,7 @@
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
 import { JSDOM } from 'jsdom';
+import yaml from 'js-yaml';
 
 const window = new JSDOM('').window;
 const purify = DOMPurify(window as any);
@@ -10,11 +11,21 @@ marked.setOptions({
   breaks: true,
 });
 
+const MAX_CONTENT_SIZE = 1024 * 1024; // 1MB limit
+
 export function renderMarkdown(content: string): string {
-  const html = marked.parse(content) as string;
+  if (!content || content.length > MAX_CONTENT_SIZE) {
+    return '<p>Content too large or empty</p>';
+  }
+  
+  const html = marked.parse(content.slice(0, MAX_CONTENT_SIZE)) as string;
   return purify.sanitize(html, {
-    ADD_TAGS: ['iframe', 'style'],
-    ADD_ATTR: ['target', 'srcdoc', 'class'],
+    ALLOWED_TAGS: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'br', 'hr', 'ul', 'ol', 'li', 
+                   'blockquote', 'pre', 'code', 'em', 'strong', 'a', 'img', 'table', 'thead', 
+                   'tbody', 'tr', 'th', 'td', 'div', 'span', 'style'],
+    ALLOWED_ATTR: ['href', 'src', 'alt', 'title', 'class', 'target', 'rel'],
+    FORBID_TAGS: ['script', 'iframe', 'object', 'embed', 'form', 'input'],
+    FORBID_ATTR: ['srcdoc', 'onerror', 'onload', 'onclick'],
   } as any) as unknown as string;
 }
 
@@ -41,30 +52,14 @@ export function extractFrontmatter(content: string): ParsedContent {
   
   const frontmatterStr = match[1] || '';
   const body = match[2] || '';
-  const data: FrontmatterData = {};
   
-  const lines = frontmatterStr.split('\n');
-  for (const line of lines) {
-    const colonIndex = line.indexOf(':');
-    if (colonIndex === -1) continue;
-    
-    const key = line.slice(0, colonIndex).trim();
-    let value: any = line.slice(colonIndex + 1).trim();
-    
-    if (value.startsWith('"') && value.endsWith('"')) {
-      value = value.slice(1, -1);
-    } else if (value === 'true') {
-      value = true;
-    } else if (value === 'false') {
-      value = false;
-    } else if (!isNaN(Number(value)) && value !== '') {
-      value = Number(value);
-    }
-    
-    data[key] = value;
+  try {
+    const data = yaml.load(frontmatterStr) as FrontmatterData;
+    return { data: data || {}, body };
+  } catch (e) {
+    console.error('YAML parse error:', e);
+    return { data: {}, body };
   }
-  
-  return { data, body };
 }
 
 export function formatFrontmatter(data: Record<string, any>, body: string): string {

@@ -12,6 +12,26 @@ const PAGES_DIR = join(CONTENT_DIR, 'pages');
 const DIST_DIR = join(ROOT, 'dist');
 const ADMIN_DIR = join(ROOT, 'admin');
 
+// Simple cache with TTL
+interface Cache {
+  posts: any[];
+  pages: any[];
+  timestamp: number;
+}
+let contentCache: Cache | null = null;
+const CACHE_TTL = 5000; // 5 seconds
+
+function getCachedContent() {
+  if (contentCache && Date.now() - contentCache.timestamp < CACHE_TTL) {
+    return contentCache;
+  }
+  return null;
+}
+
+function invalidateCache() {
+  contentCache = null;
+}
+
 // Ensure directories exist
 function ensureDirectories() {
   if (!existsSync(CONTENT_DIR)) mkdirSync(CONTENT_DIR, { recursive: true });
@@ -20,8 +40,13 @@ function ensureDirectories() {
   if (!existsSync(DIST_DIR)) mkdirSync(DIST_DIR, { recursive: true });
 }
 
-// Import existing content on startup
+// Import existing content with caching
 function importExistingContent() {
+  const cached = getCachedContent();
+  if (cached) {
+    return cached;
+  }
+  
   const posts: any[] = [];
   const pages: any[] = [];
   
@@ -65,6 +90,7 @@ function importExistingContent() {
     }
   }
   
+  contentCache = { posts, pages, timestamp: Date.now() };
   return { posts, pages };
 }
 
@@ -85,6 +111,7 @@ function writeContentFile(type: 'post' | 'page', slug: string, data: any, conten
     
     const fileContent = formatFrontmatter(frontmatter, content);
     writeFileSync(filepath, fileContent, 'utf-8');
+    invalidateCache();
     return true;
   } catch (e) {
     console.error(`Error writing ${type} ${slug}:`, e);
@@ -100,6 +127,7 @@ function deleteContentFile(type: 'post' | 'page', slug: string): boolean {
     if (existsSync(filepath)) {
       rmSync(filepath);
     }
+    invalidateCache();
     return true;
   } catch (e) {
     console.error(`Error deleting ${type} ${slug}:`, e);
@@ -340,8 +368,13 @@ async function server(port: number = 4321) {
       const url = new URL(request.url);
       const pathname = url.pathname;
       
-      // API routes
+      // API routes - localhost only for security
       if (pathname.startsWith('/api/')) {
+        const host = request.headers.get('host') || '';
+        const isLocalhost = host.includes('localhost') || host.includes('127.0.0.1');
+        if (!isLocalhost) {
+          return new Response('API not available', { status: 403 });
+        }
         return handleAPI(url, request.method, request);
       }
       
