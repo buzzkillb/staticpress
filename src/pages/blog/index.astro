@@ -1,5 +1,14 @@
 ---
+import { getCollection } from 'astro:content';
 import '../../styles/global.css';
+import { SITE_URL, SITE_NAME } from '../../lib/config';
+
+const posts = await getCollection('posts');
+const publishedPosts = posts
+  .filter(post => post.data.published)
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+
+const siteUrl = SITE_URL;
 ---
 
 <!DOCTYPE html>
@@ -7,16 +16,37 @@ import '../../styles/global.css';
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Blog | StaticPress</title>
+    
+    <!-- Primary SEO -->
+    <title>Blog | {SITE_NAME}</title>
+    <meta name="description" content={`Articles and updates from ${SITE_NAME}`} />
+    <link rel="canonical" href={`${siteUrl}/blog/`} />
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content={`Blog | ${SITE_NAME}`} />
+    <meta property="og:description" content={`Articles and updates from ${SITE_NAME}`} />
+    <meta property="og:url" content={`${siteUrl}/blog/`} />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={SITE_NAME} />
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={`Blog | ${SITE_NAME}`} />
+    <meta name="twitter:description" content={`Articles and updates from ${SITE_NAME}`} />
+    
+    <!-- Robots -->
+    <meta name="robots" content="index, follow" />
+    
+    <!-- Theme -->
     <script is:inline>
       if (localStorage.getItem('theme') === 'light') document.documentElement.classList.remove('dark');
       else document.documentElement.classList.add('dark');
     </script>
   </head>
-  <body class="bg-gray-100 dark:bg-gray-900 transition-colors">
-    <header class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+  <body class="bg-gray-50 dark:bg-gray-900 transition-colors">
+    <header class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
       <div class="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
-        <a href="/" class="text-xl font-bold text-gray-900 dark:text-white">StaticPress</a>
+        <a href="/" class="text-xl font-bold text-gray-900 dark:text-white">{SITE_NAME}</a>
         <nav class="flex gap-4">
           <a href="/" class="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">Home</a>
           <a href="/blog" class="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">Blog</a>
@@ -25,25 +55,40 @@ import '../../styles/global.css';
     </header>
     
     <main class="max-w-4xl mx-auto px-4 py-8">
-      <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-8">Blog</h1>
+      <h1 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-8">Blog</h1>
       
-      <div class="space-y-6">
-        <article class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-          <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-2">
-            <a href="/blog/welcome" class="hover:text-blue-600 dark:hover:text-blue-400">Welcome to StaticPress</a>
-          </h2>
-          <p class="text-gray-600 dark:text-gray-300 mb-4">Your first blog post with StaticPress</p>
-          <div class="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
-            <span>2026-03-15</span>
-            <span class="px-2 py-1 bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 rounded">Published</span>
-          </div>
-        </article>
-      </div>
+      {publishedPosts.length === 0 ? (
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-8 text-center">
+          <p class="text-gray-500 dark:text-gray-400">No posts yet. Create your first post in the admin panel!</p>
+          <a href="/admin/" class="inline-block mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Go to Admin</a>
+        </div>
+      ) : (
+        <div class="space-y-6">
+          {publishedPosts.map(post => (
+            <article class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition">
+              <h2 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                <a href={`/blog/${post.id}`} class="hover:text-blue-600 dark:hover:text-blue-400">
+                  {post.data.title}
+                </a>
+              </h2>
+              {post.data.excerpt && (
+                <p class="text-gray-600 dark:text-gray-300 mb-4">{post.data.excerpt}</p>
+              )}
+              <div class="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
+                <time datetime={post.data.date.toISOString()}>
+                  {post.data.date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                </time>
+                <span class="px-2 py-1 bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 rounded">Published</span>
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
     </main>
     
     <footer class="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 mt-12">
-      <div class="max-w-4xl mx-auto px-4 py-6 text-center text-gray-600 dark:text-gray-400">
-        Built with StaticPress
+      <div class="max-w-4xl mx-auto py-6 text-center text-gray-600 dark:text-gray-400">
+        <p>Built with <a href="https://github.com/buzzkillb/staticpress" class="text-blue-600 hover:underline">{SITE_NAME}</a></p>
       </div>
     </footer>
   </body>

@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StaticPress Admin</title>
+  <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+  <script src="/admin/admin-editor.js" type="module"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, -apple-system, sans-serif; }
+    
+    /* TipTap Editor Styles */
+    .ProseMirror { outline: none; min-height: 300px; padding: 1rem; }
+    .ProseMirror p.is-editor-empty:first-child::before { color: #9ca3af; content: attr(data-placeholder); float: left; height: 0; pointer-events: none; }
+    .ProseMirror h1 { font-size: 2em; font-weight: bold; margin: 0.67em 0; }
+    .ProseMirror h2 { font-size: 1.5em; font-weight: bold; margin: 0.83em 0; }
+    .ProseMirror h3 { font-size: 1.17em; font-weight: bold; margin: 1em 0; }
+    .ProseMirror h4 { font-size: 1em; font-weight: bold; margin: 1.33em 0; }
+    .ProseMirror ul { list-style-type: disc; padding-left: 2em; margin: 1em 0; }
+    .ProseMirror ol { list-style-type: decimal; padding-left: 2em; margin: 1em 0; }
+    .ProseMirror li { margin: 0.25em 0; }
+    .ProseMirror blockquote { border-left: 3px solid #d1d5db; padding-left: 1em; margin: 1em 0; color: #6b7280; }
+    .ProseMirror code { background: #f3f4f6; padding: 0.2em 0.4em; border-radius: 3px; font-family: monospace; font-size: 0.9em; }
+    .ProseMirror pre { background: #1f2937; color: #f3f4f6; padding: 1em; border-radius: 0.5em; overflow-x: auto; margin: 1em 0; }
+    .ProseMirror pre code { background: none; padding: 0; color: inherit; }
+    .ProseMirror a { color: #3b82f6; text-decoration: underline; }
+    .ProseMirror img { max-width: 100%; height: auto; border-radius: 0.25rem; }
+    .ProseMirror hr { border: none; border-top: 2px solid #e5e7eb; margin: 2em 0; }
+    
+    /* Task lists */
+    .ProseMirror ul[data-type="taskList"] { list-style: none; padding-left: 0; }
+    .ProseMirror ul[data-type="taskList"] li { display: flex; align-items: flex-start; gap: 0.5rem; }
+    .ProseMirror ul[data-type="taskList"] li > label { flex-shrink: 0; margin-top: 0.25rem; }
+    .ProseMirror ul[data-type="taskList"] li > div { flex: 1; }
+    .ProseMirror ul[data-type="taskList"] input[type="checkbox"] { width: 1.1em; height: 1.1em; cursor: pointer; }
+    
+    /* Tables */
+    .ProseMirror table { border-collapse: collapse; width: 100%; margin: 1em 0; }
+    .ProseMirror table td, .ProseMirror table th { border: 1px solid #d1d5db; padding: 0.5em 1em; text-align: left; }
+    .ProseMirror table th { background: #f3f4f6; font-weight: bold; }
+    .ProseMirror table tr:hover { background: #f9fafb; }
+    
+    /* Syntax highlighting */
+    .ProseMirror .hljs { background: transparent; padding: 0; }
+    
+    /* Dark mode */
+    .dark .ProseMirror { background: #1f2937; color: #f9fafb; }
+    .dark .ProseMirror h1, .dark .ProseMirror h2, .dark .ProseMirror h3, .dark .ProseMirror h4 { color: #f9fafb; }
+    .dark .ProseMirror blockquote { border-color: #4b5563; color: #9ca3af; }
+    .dark .ProseMirror code { background: #374151; }
+    .dark .ProseMirror pre { background: #111827; }
+    .dark .ProseMirror table td, .dark .ProseMirror table th { border-color: #4b5563; }
+    .dark .ProseMirror table th { background: #374151; }
+    .dark .ProseMirror table tr:hover { background: #374151; }
+    .dark .ProseMirror hr { border-color: #4b5563; }
+    
+    /* Split pane */
+    .split-pane { display: flex; height: calc(100vh - 180px); }
+    .split-pane > div { flex: 1; overflow: auto; }
+    .split-pane .divider { width: 4px; background: #e5e7eb; cursor: col-resize; }
+    .dark .split-pane .divider { background: #374151; }
+    
+    /* Preview iframe */
+    .preview-iframe { width: 100%; height: 100%; border: none; background: white; }
+    
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: #f3f4f6; }
+    ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 4px; }
+    .dark ::-webkit-scrollbar-track { background: #1f2937; }
+    .dark ::-webkit-scrollbar-thumb { background: #4b5563; }
+    
+    /* Toast */
+    .toast { position: fixed; bottom: 20px; right: 20px; padding: 12px 24px; border-radius: 8px; color: white; font-weight: 500; z-index: 1000; transform: translateY(100px); opacity: 0; transition: all 0.3s; }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast.success { background: #10b981; }
+    .toast.error { background: #ef4444; }
+    .toast.info { background: #3b82f6; }
+    
+    /* Toolbar */
+    .toolbar-btn { padding: 0.4rem 0.6rem; border-radius: 0.375rem; background: transparent; border: 1px solid transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+    .toolbar-btn:hover { background: #e5e7eb; }
+    .dark .toolbar-btn:hover { background: #4b5563; }
+    .toolbar-btn.active { background: #3b82f6; color: white; }
+    .toolbar-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    
+    /* Media modal */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; display: flex; align-items: center; justify-content: center; }
+    .modal-content { background: white; border-radius: 0.5rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); max-width: 64rem; width: 100%; max-height: 80vh; overflow: hidden; }
+    .dark .modal-content { background: #1f2937; }
+    .media-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1rem; padding: 1rem; }
+    .media-item { border: 2px solid #e5e7eb; border-radius: 0.5rem; overflow: hidden; cursor: pointer; transition: all 0.15s; }
+    .dark .media-item { border-color: #374151; }
+    .dark .media-item-info { color: #9ca3af; }
+    .media-item:hover { border-color: #3b82f6; }
+    .media-item img { width: 100%; aspect-ratio: 1; object-fit: cover; }
+    .media-item-info { padding: 0.5rem; font-size: 0.75rem; color: #6b7280; }
+  </style>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900">
+  <div id="app"></div>
+  <div id="toast" class="toast"></div>
+  <div id="modal-container"></div>
+
+  <script type="module">
+    const state = {
+      posts: [],
+      pages: [],
+      media: [],
+      currentView: 'posts',
+      currentItem: null,
+      editor: null,
+      mode: 'visual',
+      previewMode: 'split',
+      theme: localStorage.getItem('theme') || 'dark',
+      loading: false,
+      mediaModalOpen: false,
+    };
+
+    async function api(endpoint, options = {}) {
+      const res = await fetch(`/api${endpoint}`, {
+        headers: { 'Content-Type': 'application/json' },
+        ...options,
+      });
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || `API error: ${res.status}`);
+      }
+      return res.json();
+    }
+
+    async function apiForm(endpoint, formData) {
+      const res = await fetch(`/api${endpoint}`, {
+        method: 'POST',
+        body: formData,
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        throw new Error(json.error || `Upload failed: ${res.status}`);
+      }
+      return json;
+    }
+
+    function showToast(message, type = 'info') {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.className = `toast ${type} show`;
+      setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    function applyTheme() {
+      document.documentElement.classList.toggle('dark', state.theme === 'dark');
+    }
+
+    function render() {
+      applyTheme();
+      const app = document.getElementById('app');
+      app.innerHTML = `
+        <div class="flex h-screen">
+          <aside class="w-64 bg-gray-900 dark:bg-black text-white flex flex-col">
+            <div class="p-6 border-b border-gray-800">
+              <h1 class="text-xl font-bold">StaticPress</h1>
+              <p class="text-xs text-gray-400 mt-1">Admin Panel</p>
+            </div>
+            <nav class="flex-1 p-4 space-y-1">
+              <button onclick="navigate('posts')" class="w-full text-left px-4 py-2 rounded hover:bg-gray-800 ${state.currentView === 'posts' ? 'bg-gray-800' : ''}">
+                📝 Posts
+              </button>
+              <button onclick="navigate('pages')" class="w-full text-left px-4 py-2 rounded hover:bg-gray-800 ${state.currentView === 'pages' ? 'bg-gray-800' : ''}">
+                📄 Pages
+              </button>
+              <button onclick="openMediaModal()" class="w-full text-left px-4 py-2 rounded hover:bg-gray-800 ${state.currentView === 'media' ? 'bg-gray-800' : ''}">
+                🖼️ Media
+              </button>
+              <div class="pt-4 border-t border-gray-800 mt-4">
+                <p class="text-xs text-gray-500 uppercase px-4 mb-2">Publish</p>
+                <button onclick="runBuild()" class="w-full text-left px-4 py-2 rounded hover:bg-gray-800">
+                  🔨 Build Site
+                </button>
+                <button onclick="runDeploy()" class="w-full text-left px-4 py-2 rounded hover:bg-gray-800">
+                  🚀 Deploy
+                </button>
+              </div>
+              <div class="pt-4 border-t border-gray-800 mt-4">
+                <p class="text-xs text-gray-500 uppercase px-4 mb-2">Config</p>
+                <button onclick="navigate('settings')" class="w-full text-left px-4 py-2 rounded hover:bg-gray-800 ${state.currentView === 'settings' ? 'bg-gray-800' : ''}">
+                  ⚙️ Settings
+                </button>
+              </div>
+            </nav>
+            <div class="p-4 border-t border-gray-800">
+              <button onclick="toggleTheme()" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-400 hover:text-white w-full rounded hover:bg-gray-800">
+                ${state.theme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode'}
+              </button>
+              <a href="/" target="_blank" class="block px-4 py-2 text-sm text-gray-400 hover:text-white mt-2">
+                👁️ View Site →
+              </a>
+            </div>
+          </aside>
+          
+          <main class="flex-1 flex flex-col overflow-hidden">
+            ${renderMain()}
+          </main>
+        </div>
+      `;
+      
+      if (state.currentItem !== null) {
+        initEditor();
+      }
+       
+      if (state.mediaModalOpen) {
+        renderMediaModal();
+      }
+      
+      // Populate settings fields when settings view is shown
+      if (state.currentView === 'settings') {
+        setTimeout(() => {
+          document.getElementById('settings-site-url').value = localStorage.getItem('site_url') || '';
+          document.getElementById('settings-formspree-id').value = localStorage.getItem('formspree_id') || '';
+          document.getElementById('settings-cf-project').value = localStorage.getItem('cf_project') || '';
+          document.getElementById('settings-cf-account').value = localStorage.getItem('cf_account') || '';
+          const cfToken = localStorage.getItem('cf_token') || '';
+          if (cfToken) {
+            document.getElementById('settings-cf-token').value = cfToken;
+          }
+        }, 0);
+      }
+    }
+
+    function renderMain() {
+      if (state.currentItem !== null) {
+        return renderEditor();
+      }
+      if (state.currentView === 'posts') return renderList('posts', state.posts);
+      if (state.currentView === 'pages') return renderList('pages', state.pages);
+      if (state.currentView === 'media') return renderMediaLibrary();
+      if (state.currentView === 'settings') return renderSettings();
+      return renderDashboard();
+    }
+
+    function renderDashboard() {
+      return `
+        <div class="p-8">
+          <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-8">Dashboard</h1>
+          <div class="grid grid-cols-3 gap-6">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+              <h3 class="font-semibold text-gray-900 dark:text-white">📝 Posts</h3>
+              <p class="text-3xl font-bold text-blue-600">${state.posts.length}</p>
+            </div>
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+              <h3 class="font-semibold text-gray-900 dark:text-white">📄 Pages</h3>
+              <p class="text-3xl font-bold text-green-600">${state.pages.length}</p>
+            </div>
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+              <h3 class="font-semibold text-gray-900 dark:text-white">🖼️ Media</h3>
+              <p class="text-3xl font-bold text-purple-600">${state.media.length}</p>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderList(type, items) {
+      return `
+        <div class="p-8 flex-1 overflow-auto">
+          <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl font-bold text-gray-900 dark:text-white capitalize">${type}</h1>
+            <button onclick="createNew('${type}')" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+              + New ${type === 'posts' ? 'Post' : 'Page'}
+            </button>
+          </div>
+          <div class="space-y-4">
+            ${items.length === 0 ? `
+              <div class="bg-white dark:bg-gray-800 rounded-lg p-8 text-center text-gray-500">
+                No ${type} yet. Create your first one!
+              </div>
+            ` : items.map(item => `
+              <div class="bg-white dark:bg-gray-800 rounded-lg p-4 flex justify-between items-center">
+                <div>
+                  <h3 class="font-semibold text-gray-900 dark:text-white">${escapeHtml(item.title || 'Untitled')}</h3>
+                  <p class="text-sm text-gray-500">/${escapeHtml(item.slug)} • ${item.published ? 'Published' : 'Draft'}</p>
+                </div>
+                <div class="flex gap-2">
+                  <button onclick="editItem('${type}', '${item.slug}')" class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">Edit</button>
+                  <button onclick="deleteItem('${type}', '${item.slug}')" class="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700">Delete</button>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderMediaLibrary() {
+      const safeMedia = state.media.filter(item => {
+        const url = item.url || '';
+        return url.startsWith('/') || url.startsWith('https://');
+      });
+      return `
+        <div class="p-8 flex-1 overflow-auto">
+          <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Media Library</h1>
+            <label class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer">
+              + Upload Image
+              <input type="file" accept="image/*" onchange="uploadMedia(this.files)" class="hidden" multiple>
+            </label>
+          </div>
+          <div class="grid grid-cols-4 gap-6">
+            ${safeMedia.length === 0 ? `
+              <div class="col-span-4 bg-white dark:bg-gray-800 rounded-lg p-8 text-center text-gray-500">
+                No media yet. Upload your first image!
+              </div>
+            ` : safeMedia.map(item => `
+              <div class="bg-white dark:bg-gray-800 rounded-lg p-4">
+                <div class="aspect-square bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden mb-2">
+                  <img src="${escapeHtml(item.url)}" alt="${escapeHtml(item.name)}" class="w-full h-full object-cover">
+                </div>
+                <p class="text-sm text-gray-900 dark:text-white truncate">${escapeHtml(item.name)}</p>
+                <p class="text-xs text-gray-500">${item.size}</p>
+                <div class="flex gap-2 mt-2">
+                  <button onclick="copyMediaUrl('${escapeHtml(item.url)}')" class="flex-1 px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded text-xs hover:bg-gray-300 dark:hover:bg-gray-600">Copy URL</button>
+                  <button onclick="deleteMedia('${escapeHtml(item.name)}')" class="flex-1 px-2 py-1 bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-300 rounded text-xs hover:bg-red-200 dark:hover:bg-red-800">Delete</button>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderSettings() {
+      return `
+        <div class="p-8 flex-1 overflow-auto">
+          <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-8">Settings</h1>
+          
+          <!-- Site Configuration -->
+          <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-6">
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Site Configuration</h2>
+            <p class="text-gray-600 dark:text-gray-300 text-sm mb-4">These settings are used for SEO, sitemap, and contact form.</p>
+            
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Site URL</label>
+                <input type="url" id="settings-site-url" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg" placeholder="https://example.com" />
+              </div>
+              
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Formspree Form ID <a href="https://formspree.io" target="_blank" class="text-blue-500 text-xs">(Get Free Form →)</a></label>
+                <input type="text" id="settings-formspree-id" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg" placeholder="xyzabc123" />
+              </div>
+              
+              <button onclick="saveSiteSettings()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Save Site Settings</button>
+            </div>
+          </div>
+          
+          <!-- Cloudflare Configuration -->
+          <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-6">
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Cloudflare Pages Configuration</h2>
+            
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Project Name</label>
+                <input type="text" id="settings-cf-project" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg" placeholder="my-static-site" />
+              </div>
+               
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">API Token <a href="https://dash.cloudflare.com/profile/api-tokens" target="_blank" class="text-blue-500 text-xs">(Get Token →)</a></label>
+                <input type="password" id="settings-cf-token" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg" placeholder="toke****oken" />
+              </div>
+               
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Account ID</label>
+                <input type="text" id="settings-cf-account" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg" placeholder="Your Cloudflare Account ID" />
+              </div>
+               
+              <button onclick="saveCloudflareSettings()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Save Cloudflare Settings</button>
+            </div>
+          </div>
+          
+          <!-- Config File -->
+          <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-6">
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Save/Load Configuration</h2>
+            <p class="text-gray-600 dark:text-gray-300 mb-4 text-sm">Save all settings to a config file.</p>
+            <div class="flex gap-3">
+              <button onclick="loadConfigFile()" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">Load Config</button>
+              <button onclick="saveConfigFile()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">Save Config</button>
+            </div>
+          </div>
+          
+          <div class="bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+            <h3 class="font-medium text-yellow-800 dark:text-yellow-200 mb-2">⚠️ Note</h3>
+            <p class="text-sm text-yellow-700 dark:text-yellow-300">After changing settings, rebuild the site for changes to take effect.</p>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderEditor() {
+      const item = state.currentItem;
+      return `
+        <div class="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center bg-white dark:bg-gray-800">
+          <div class="flex gap-4">
+            <button onclick="backToList()" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600">
+              ← Back
+            </button>
+            <select id="preview-select" onchange="setPreviewMode(this.value)" class="px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600">
+              <option value="split" ${state.previewMode === 'split' ? 'selected' : ''}>Split View</option>
+              <option value="iframe" ${state.previewMode === 'iframe' ? 'selected' : ''}>Iframe Preview</option>
+              <option value="rendered" ${state.previewMode === 'rendered' ? 'selected' : ''}>Rendered HTML</option>
+            </select>
+          </div>
+          <div class="flex gap-2">
+            <button onclick="saveItem()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+              💾 Save
+            </button>
+          </div>
+        </div>
+        
+        <div class="p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+          <div class="grid grid-cols-4 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Title</label>
+              <input type="text" id="item-title" value="${escapeHtml(item.title || '')}" 
+                class="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600" 
+                placeholder="Post title...">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Slug</label>
+              <input type="text" id="item-slug" value="${escapeHtml(item.slug || '')}" 
+                class="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
+                placeholder="url-slug">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Excerpt</label>
+              <input type="text" id="item-excerpt" value="${escapeHtml(item.excerpt || '')}" 
+                class="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
+                placeholder="Short description...">
+            </div>
+            <div class="flex items-end gap-4">
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" id="item-published" ${item.published ? 'checked' : ''} class="w-4 h-4 rounded">
+                <span class="text-sm text-gray-700 dark:text-gray-300">Published</span>
+              </label>
+            </div>
+          </div>
+        </div>
+        
+        <div class="split-pane ${state.previewMode === 'iframe' || state.previewMode === 'rendered' ? 'flex-col' : ''}">
+          ${state.previewMode !== 'iframe' ? `
+            <div class="border-r border-gray-200 dark:border-gray-700 flex flex-col">
+              <div class="p-2 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 flex items-center gap-1 flex-wrap">
+                <button onclick="setMode('visual')" class="px-3 py-1 rounded ${state.mode === 'visual' ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-gray-700'}">Visual</button>
+                <button onclick="setMode('markdown')" class="px-3 py-1 rounded ${state.mode === 'markdown' ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-gray-700'}">Markdown</button>
+                <div class="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-2"></div>
+                ${state.mode === 'visual' ? `
+                  <button onclick="format('bold')" class="toolbar-btn" title="Bold"><b>B</b></button>
+                  <button onclick="format('italic')" class="toolbar-btn" title="Italic"><i>I</i></button>
+                  <button onclick="format('strike')" class="toolbar-btn" title="Strikethrough"><s>S</s></button>
+                  <button onclick="format('code')" class="toolbar-btn" title="Inline Code"><code>&lt;&gt;</code></button>
+                  <div class="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-2"></div>
+                  <button onclick="format('heading', { level: 1 })" class="toolbar-btn" title="Heading 1">H1</button>
+                  <button onclick="format('heading', { level: 2 })" class="toolbar-btn" title="Heading 2">H2</button>
+                  <button onclick="format('heading', { level: 3 })" class="toolbar-btn" title="Heading 3">H3</button>
+                  <div class="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-2"></div>
+                  <button onclick="format('bulletList')" class="toolbar-btn" title="Bullet List">• List</button>
+                  <button onclick="format('orderedList')" class="toolbar-btn" title="Numbered List">1. List</button>
+                  <button onclick="format('taskList')" class="toolbar-btn" title="Task List">☐ Task</button>
+                  <div class="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-2"></div>
+                  <button onclick="format('blockquote')" class="toolbar-btn" title="Quote">❝</button>
+                  <button onclick="format('codeBlock')" class="toolbar-btn" title="Code Block">{ }</button>
+                  <button onclick="format('hr')" class="toolbar-btn" title="Horizontal Rule">—</button>
+                  <div class="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-2"></div>
+                  <button onclick="format('link')" class="toolbar-btn" title="Link">🔗</button>
+                  <button onclick="openMediaModal()" class="toolbar-btn" title="Insert Image">🖼️</button>
+                  <button onclick="format('table')" class="toolbar-btn" title="Table">⊞</button>
+                  <div class="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-2"></div>
+                  <button onclick="format('undo')" class="toolbar-btn" title="Undo">↩</button>
+                  <button onclick="format('redo')" class="toolbar-btn" title="Redo">↪</button>
+                ` : ''}
+              </div>
+              <div id="editor-container" class="flex-1 overflow-auto">
+                ${state.mode === 'visual' ? `
+                  <div id="tiptap-editor" class="ProseMirror bg-white dark:bg-gray-800 min-h-[400px]"></div>
+                ` : `
+                  <textarea id="markdown-editor" class="w-full h-full p-4 bg-white dark:bg-gray-800 text-gray-900 dark:text-white font-mono text-sm resize-none border-0 outline-none" placeholder="Write markdown...">${escapeHtml(item.content || '')}</textarea>
+                `}
+              </div>
+            </div>
+          ` : ''}
+          
+          ${state.previewMode === 'split' ? '<div class="divider"></div>' : ''}
+          
+          ${state.previewMode === 'iframe' || state.previewMode === 'split' ? `
+            <div class="${state.previewMode === 'split' ? '' : 'h-1/2'}">
+              <div class="p-2 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Preview</span>
+              </div>
+              ${state.previewMode === 'iframe' ? `
+                <iframe id="preview-iframe" class="preview-iframe" sandbox="allow-scripts" srcdoc="<html><body style='font-family:system-ui;padding:2rem;'><p class='text-gray-500'>Save to see preview...</p></body></html>"></iframe>
+              ` : `
+                <div id="preview-html" class="p-6 bg-white dark:bg-gray-800 min-h-[400px] overflow-auto prose dark:prose-invert max-w-none">
+                  <p class="text-gray-500">Save to see preview...</p>
+                </div>
+              `}
+            </div>
+          ` : ''}
+          
+          ${state.previewMode === 'rendered' ? `
+            <div class="h-1/2 border-t border-gray-200 dark:border-gray-700">
+              <div class="p-2 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Rendered HTML</span>
+              </div>
+              <textarea id="html-output" class="w-full h-full p-4 bg-gray-900 text-green-400 font-mono text-sm resize-none border-0 outline-none" readonly placeholder="HTML output will appear here..."></textarea>
+            </div>
+          ` : ''}
+        </div>
+      `;
+    }
+
+    function renderMediaModal() {
+      const container = document.getElementById('modal-container');
+      container.innerHTML = `
+        <div class="modal-overlay" onclick="closeMediaModal(event)">
+          <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+              <h2 class="text-xl font-bold text-gray-900 dark:text-white">Media Library</h2>
+              <button onclick="closeMediaModal()" class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 text-2xl">&times;</button>
+            </div>
+            <div class="p-4 border-b border-gray-200 dark:border-gray-700">
+              <label class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer inline-block">
+                + Upload Image
+                <input type="file" accept="image/*" onchange="uploadMedia(this.files)" class="hidden" multiple>
+              </label>
+            </div>
+            <div class="media-grid max-h-[400px] overflow-auto">
+              ${state.media.length === 0 ? `
+                <div class="col-span-4 text-center text-gray-500 py-8">No media yet. Upload your first image!</div>
+              ` : state.media.map(item => `
+                <div class="media-item" onclick="insertMedia('${escapeHtml(item.url)}')">
+                  <img src="${escapeHtml(item.url)}" alt="${escapeHtml(item.name)}">
+                  <div class="media-item-info">${escapeHtml(item.name)}</div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    window.insertMedia = function(url) {
+      if (state.editor) {
+        state.editor.chain().focus().setImage({ src: url }).run();
+      }
+      closeMediaModal();
+    };
+
+    window.openMediaModal = function() {
+      state.mediaModalOpen = true;
+      render();
+    };
+
+    window.closeMediaModal = function(event) {
+      if (event && event.target !== event.currentTarget) return;
+      state.mediaModalOpen = false;
+      render();
+    };
+
+    window.copyMediaUrl = async function(url) {
+      try {
+        await navigator.clipboard.writeText(window.location.origin + url);
+        showToast('URL copied to clipboard!', 'success');
+      } catch (e) {
+        showToast('Failed to copy URL', 'error');
+      }
+    };
+
+    window.uploadMedia = async function(files) {
+      if (!files || files.length === 0) return;
+      
+      for (const file of files) {
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        try {
+          showToast(`Uploading ${file.name}...`, 'info');
+          const result = await apiForm('/media/upload', formData);
+          if (result.success) {
+            showToast(`${file.name} uploaded!`, 'success');
+          } else {
+            showToast(`Failed to upload ${file.name}`, 'error');
+          }
+        } catch (e) {
+          showToast(`Error uploading ${file.name}`, 'error');
+        }
+      }
+      
+      await loadMedia();
+      render();
+    };
+
+    window.deleteMedia = async function(filename) {
+      if (!confirm(`Delete ${filename}?`)) return;
+      
+      try {
+        const result = await api(`/media/${encodeURIComponent(filename)}`, { method: 'DELETE' });
+        if (result.success) {
+          showToast('Media deleted', 'success');
+          await loadMedia();
+          render();
+        } else {
+          showToast('Failed to delete media', 'error');
+        }
+      } catch (e) {
+        showToast('Error deleting media', 'error');
+      }
+    };
+
+    async function loadMedia() {
+      try {
+        state.media = await api('/media');
+      } catch (e) {
+        state.media = [];
+      }
+    }
+
+    window.navigate = async function(view) {
+      state.currentView = view;
+      state.currentItem = null;
+      await loadContent();
+      if (view === 'media') await loadMedia();
+      render();
+    };
+
+    window.backToList = function() {
+      state.currentItem = null;
+      state.editor = null;
+      render();
+    };
+
+    async function loadContent() {
+      try {
+        state.posts = await api('/posts');
+        state.pages = await api('/pages');
+      } catch (e) {
+        showToast('Failed to load content', 'error');
+      }
+    }
+
+    window.createNew = function(type) {
+      const slug = `new-${type}-${Date.now()}`;
+      state.currentItem = {
+        slug,
+        title: '',
+        content: '',
+        excerpt: '',
+        published: false,
+        date: new Date().toISOString().split('T')[0],
+        isNew: true,
+      };
+      state.currentView = type;
+      render();
+    };
+
+    window.editItem = async function(type, slug) {
+      try {
+        const item = await api(`/${type}/${slug}`);
+        state.currentItem = { ...item, isNew: false };
+        state.currentView = type;
+        render();
+      } catch (e) {
+        showToast('Failed to load item', 'error');
+      }
+    };
+
+    window.deleteItem = async function(type, slug) {
+      if (!confirm(`Delete ${slug}?`)) return;
+      try {
+        await api(`/${type}/${slug}`, { method: 'DELETE' });
+        showToast('Deleted successfully', 'success');
+        await loadContent();
+        render();
+      } catch (e) {
+        showToast('Failed to delete', 'error');
+      }
+    };
+
+    window.saveItem = async function() {
+      const item = state.currentItem;
+      let rawContent = state.mode === 'markdown' 
+        ? document.getElementById('markdown-editor').value 
+        : (state.editor?.getHTML() || '');
+      
+      // Sanitize visual editor HTML through server before saving
+      let content = rawContent;
+      if (state.mode === 'visual' && rawContent) {
+        try {
+          const result = await api('/render', {
+            method: 'POST',
+            body: JSON.stringify({ content: rawContent }),
+          });
+          // Use the sanitized HTML from server for storage
+          content = result.sanitized || rawContent;
+        } catch (e) {
+          showToast('Failed to sanitize content', 'error');
+          return;
+        }
+      }
+      
+      const data = {
+        title: document.getElementById('item-title').value,
+        slug: document.getElementById('item-slug').value,
+        excerpt: document.getElementById('item-excerpt').value,
+        published: document.getElementById('item-published').checked,
+        date: item.date,
+        content,
+      };
+      
+      if (!data.title) {
+        showToast('Title is required', 'error');
+        return;
+      }
+      
+      if (!data.slug) {
+        data.slug = slugify(data.title);
+      }
+      
+      try {
+        await api(`/${state.currentView}/${data.slug}`, {
+          method: 'POST',
+          body: JSON.stringify(data),
+        });
+        showToast('Saved successfully', 'success');
+        state.currentItem = { ...data, isNew: false };
+        await loadContent();
+        render();
+      } catch (e) {
+        showToast('Failed to save', 'error');
+      }
+    };
+
+    window.setMode = function(mode) {
+      if (state.mode === mode) return;
+      state.mode = mode;
+      
+      if (mode === 'markdown' && state.editor) {
+        // When switching to markdown, use the currentItem content.
+        // Content from visual mode is DOMPurify-sanitized HTML (already escaped).
+        // Do NOT escape again as it would cause double-escaping.
+        const mdContent = state.currentItem?.content || state.editor.getText();
+        document.getElementById('editor-container').innerHTML = `
+          <textarea id="markdown-editor" class="w-full h-full p-4 bg-white dark:bg-gray-800 text-gray-900 dark:text-white font-mono text-sm resize-none border-0 outline-none" placeholder="Write markdown...">${mdContent}</textarea>
+        `;
+      } else if (mode === 'visual' && state.editor === null) {
+        setTimeout(initTipTap, 0);
+      }
+      
+      render();
+    };
+
+    window.setPreviewMode = function(mode) {
+      state.previewMode = mode;
+      render();
+    };
+
+    window.format = function(type, options = {}) {
+      if (!state.editor) return;
+      
+      const chain = state.editor.chain().focus();
+      
+      switch (type) {
+        case 'bold': chain.toggleBold().run(); break;
+        case 'italic': chain.toggleItalic().run(); break;
+        case 'strike': chain.toggleStrike().run(); break;
+        case 'code': chain.toggleCode().run(); break;
+        case 'heading': chain.toggleHeading({ level: options.level || 1 }).run(); break;
+        case 'bulletList': chain.toggleBulletList().run(); break;
+        case 'orderedList': chain.toggleOrderedList().run(); break;
+        case 'taskList': chain.toggleTaskList().run(); break;
+        case 'blockquote': chain.toggleBlockquote().run(); break;
+        case 'codeBlock': chain.toggleCodeBlock().run(); break;
+        case 'hr': chain.setHorizontalRule().run(); break;
+        case 'link':
+          const url = prompt('Enter URL:');
+          if (url) chain.setLink({ href: url }).run();
+          break;
+        case 'table':
+          chain.insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
+          break;
+        case 'undo': chain.undo().run(); break;
+        case 'redo': chain.redo().run(); break;
+      }
+    };
+
+    async function initTipTap() {
+      if (state.mode !== 'visual') return;
+      
+      const element = document.getElementById('tiptap-editor');
+      if (!element) return;
+      
+      let content = state.currentItem?.content || '';
+      try {
+        const result = await api('/render', {
+          method: 'POST',
+          body: JSON.stringify({ content }),
+        });
+        content = result.html || '';
+      } catch (e) {
+        content = '';
+      }
+      
+      state.editor = window.createEditor(element, content, (html) => {
+        updatePreview(html);
+      });
+    }
+
+    window.initEditor = function() {
+      if (state.mode === 'visual' && !state.editor) {
+        setTimeout(initTipTap, 0);
+      } else if (state.mode === 'markdown') {
+        setTimeout(() => {
+          const ta = document.getElementById('markdown-editor');
+          if (ta) {
+            ta.addEventListener('input', () => updatePreview(ta.value));
+          }
+        }, 0);
+      }
+    };
+
+    async function updatePreview(content) {
+      if (state.previewMode === 'split') {
+        const previewEl = document.getElementById('preview-html');
+        if (previewEl) {
+          try {
+            const result = await api('/render', {
+              method: 'POST',
+              body: JSON.stringify({ content }),
+            });
+            previewEl.innerHTML = result.html || '<p>Loading...</p>';
+          } catch (e) {
+            previewEl.innerHTML = '<p>Error rendering preview</p>';
+          }
+        }
+      } else if (state.previewMode === 'iframe') {
+        const iframe = document.getElementById('preview-iframe');
+        if (iframe) {
+          try {
+            const result = await api('/render', {
+              method: 'POST',
+              body: JSON.stringify({ content }),
+            });
+            const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css"><style>body{font-family:system-ui;padding:2rem;max-width:800px;margin:0 auto;background:#fff;color:#1f2937}@media(prefers-color-scheme:dark){body{background:#111827;color:#f9fafb}}pre{background:#1f2937;color:#f3f4f6;padding:1em;border-radius:0.5em;overflow-x:auto}code{background:#f3f4f6;padding:0.2em 0.4em;border-radius:3px}pre code{background:none;padding:0}</style></head><body>${result.html}</body></html>`;
+            iframe.srcdoc = html;
+          } catch (e) {}
+        }
+      } else if (state.previewMode === 'rendered') {
+        const outputEl = document.getElementById('html-output');
+        if (outputEl) {
+          try {
+            const result = await api('/render', {
+              method: 'POST',
+              body: JSON.stringify({ content }),
+            });
+            outputEl.value = result.html || '';
+          } catch (e) {}
+        }
+      }
+    }
+
+    window.runBuild = async function() {
+      if (!confirm('Run build? This will generate static files in dist/')) return;
+      showToast('Building...', 'info');
+      try {
+        const result = await api('/build', { method: 'POST' });
+        if (result.success) {
+          showToast('Build successful!', 'success');
+        } else {
+          showToast('Build failed: ' + (result.error || 'Unknown error'), 'error');
+        }
+      } catch (e) {
+        showToast('Build failed', 'error');
+      }
+    };
+
+    window.runDeploy = async function() {
+      if (!confirm('Deploy to Cloudflare Pages? Make sure you have configured your Cloudflare settings.')) return;
+      showToast('Deploying...', 'info');
+      try {
+        const result = await api('/deploy', { method: 'POST' });
+        if (result.success) {
+          showToast('Deployed successfully!', 'success');
+        } else {
+          showToast('Deploy failed: ' + (result.error || 'Unknown error'), 'error');
+        }
+      } catch (e) {
+        showToast('Deploy failed', 'error');
+      }
+    };
+
+    window.saveSiteSettings = function() {
+      const siteUrl = document.getElementById('settings-site-url').value.trim();
+      const formspreeId = document.getElementById('settings-formspree-id').value.trim();
+      
+      if (!siteUrl) {
+        showToast('Site URL is required', 'error');
+        return;
+      }
+      
+      localStorage.setItem('site_url', siteUrl);
+      localStorage.setItem('formspree_id', formspreeId);
+      showToast('Site settings saved!', 'success');
+    };
+
+    window.saveCloudflareSettings = function() {
+      const project = document.getElementById('settings-cf-project').value.trim();
+      const token = document.getElementById('settings-cf-token').value.trim();
+      const account = document.getElementById('settings-cf-account').value.trim();
+      
+      if (!project || !token || !account) {
+        showToast('Please fill in all Cloudflare fields', 'error');
+        return;
+      }
+      
+      localStorage.setItem('cf_project', project);
+      localStorage.setItem('cf_token', token);
+      localStorage.setItem('cf_account', account);
+      showToast('Cloudflare settings saved!', 'success');
+    };
+
+    window.saveConfigFile = function() {
+      const siteUrl = localStorage.getItem('site_url') || '';
+      const formspreeId = localStorage.getItem('formspree_id') || '';
+      const cfProject = localStorage.getItem('cf_project') || '';
+      const cfToken = localStorage.getItem('cf_token') || '';
+      const cfAccount = localStorage.getItem('cf_account') || '';
+      
+      const config = {
+        siteUrl,
+        formspreeId,
+        cloudflare: {
+          project: cfProject,
+          account: cfAccount
+        }
+      };
+      
+      const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'staticpress-config.json';
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('Config file downloaded', 'success');
+    };
+
+    window.loadConfigFile = function() {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.json';
+      input.onchange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        const text = await file.text();
+        try {
+          const config = JSON.parse(text);
+          
+          if (config.siteUrl) {
+            localStorage.setItem('site_url', config.siteUrl);
+            document.getElementById('settings-site-url').value = config.siteUrl;
+          }
+          if (config.formspreeId) {
+            localStorage.setItem('formspree_id', config.formspreeId);
+            document.getElementById('settings-formspree-id').value = config.formspreeId;
+          }
+          if (config.cloudflare) {
+            if (config.cloudflare.project) {
+              localStorage.setItem('cf_project', config.cloudflare.project);
+              document.getElementById('settings-cf-project').value = config.cloudflare.project;
+            }
+            if (config.cloudflare.account) {
+              localStorage.setItem('cf_account', config.cloudflare.account);
+              document.getElementById('settings-cf-account').value = config.cloudflare.account;
+            }
+            if (config.cloudflare.token) {
+              localStorage.setItem('cf_token', config.cloudflare.token);
+              document.getElementById('settings-cf-token').value = config.cloudflare.token;
+            }
+          }
+          showToast('Config loaded successfully!', 'success');
+        } catch (err) {
+          showToast('Invalid config file', 'error');
+        }
+      };
+      input.click();
+    };
+
+    window.toggleTheme = function() {
+      state.theme = state.theme === 'dark' ? 'light' : 'dark';
+      localStorage.setItem('theme', state.theme);
+      applyTheme();
+      render();
+    };
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function slugify(text) {
+      return text.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').trim();
+    }
+
+    document.addEventListener('input', (e) => {
+      if (e.target.id === 'item-title' && !state.currentItem?.slug.startsWith('new-')) return;
+      const slugInput = document.getElementById('item-slug');
+      if (slugInput && e.target.id === 'item-title') {
+        if (!slugInput.dataset.manual) {
+          slugInput.value = slugify(e.target.value);
+        }
+      }
+    });
+
+    document.addEventListener('focusin', (e) => {
+      if (e.target.id === 'item-slug') {
+        e.target.dataset.manual = 'true';
+      }
+    });
+
+    loadContent().then(() => loadMedia()).then(render);
+  </script>
+</body>
+</html>

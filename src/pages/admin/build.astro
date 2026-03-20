@@ -2,6 +2,7 @@
 import '../../styles/global.css';
 const pageTitle = "Build Site";
 ---
+
 <!DOCTYPE html>
 <html lang="en" class="dark">
   <head>
@@ -46,21 +47,27 @@ const pageTitle = "Build Site";
           <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-8">Build Site</h1>
           
           <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-6">
-            <p class="text-gray-600 dark:text-gray-300 mb-6">Build your static site to prepare it for deployment.</p>
+            <p class="text-gray-600 dark:text-gray-300 mb-6">Build your static site to prepare it for deployment. Run the build command in your terminal:</p>
             
-            <button id="build-btn" class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
-              Run Build
-            </button>
+            <div class="bg-gray-900 dark:bg-gray-950 rounded-lg p-4 mb-6">
+              <code class="text-green-400 font-mono text-sm">bun run build</code>
+            </div>
             
-            <div id="build-output" class="mt-4 bg-gray-900 rounded-lg p-4 hidden">
-              <pre class="text-green-400 font-mono text-sm whitespace-pre-wrap" id="build-logs"></pre>
+            <div class="flex gap-4">
+              <button id="copy-btn" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                Copy Build Command
+              </button>
+              <a href="/admin/deploy" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition flex items-center gap-2">
+                Deploy Settings →
+              </a>
             </div>
           </div>
           
-          <div class="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-            <h3 class="font-medium text-blue-800 dark:text-blue-200 mb-2">After Building</h3>
-            <p class="text-sm text-blue-700 dark:text-blue-300">
-              Run <code class="bg-blue-100 dark:bg-blue-800 px-1 rounded">bun run build</code> to generate static files in <code class="bg-blue-100 dark:bg-blue-800 px-1 rounded">dist/</code> folder, then deploy from Deploy Settings.
+          <div class="bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+            <h3 class="font-medium text-amber-800 dark:text-amber-200 mb-2">Build Output</h3>
+            <p class="text-sm text-amber-700 dark:text-amber-300">
+              The build generates static files in the <code class="bg-amber-100 dark:bg-amber-800 px-1 rounded">dist/</code> folder. After building, preview your site with <code class="bg-amber-100 dark:bg-amber-800 px-1 rounded">bun run preview</code> or deploy using the Deploy Settings.
             </p>
           </div>
         </div>
@@ -68,34 +75,20 @@ const pageTitle = "Build Site";
     </div>
     
     <script is:inline>
-      document.getElementById('build-btn').addEventListener('click', async () => {
-        const btn = document.getElementById('build-btn');
-        const output = document.getElementById('build-output');
-        const logs = document.getElementById('build-logs');
-        
-        btn.disabled = true;
-        btn.textContent = 'Building...';
-        btn.classList.add('opacity-50');
-        output.classList.remove('hidden');
-        logs.textContent = 'Building static site...\n\n';
-        logs.textContent += 'Run this command in your terminal:\n\n';
-        logs.textContent += '  bun run build\n\n';
-        logs.textContent += 'This will generate static files in the dist/ folder.\n';
-        logs.textContent += '\nAfter building, go to Deploy Settings to deploy to Cloudflare.';
-        
-        btn.disabled = false;
-        btn.textContent = 'Run Build';
-        btn.classList.remove('opacity-50');
+      document.getElementById('copy-btn')?.addEventListener('click', () => {
+        navigator.clipboard.writeText('bun run build');
+        const btn = document.getElementById('copy-btn');
+        const original = btn.innerHTML;
+        btn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Copied!';
+        setTimeout(() => { btn.innerHTML = original; }, 2000);
       });
-    </script>
-    
-    <script is:inline>
+      
       const toggle = document.getElementById('theme-toggle');
       const sunIcon = document.getElementById('sun-icon'), moonIcon = document.getElementById('moon-icon'), themeText = document.getElementById('theme-text');
       function updateIcons() {
         const isDark = document.documentElement.classList.contains('dark');
-        if (isDark) { sunIcon.classList.remove('hidden'); moonIcon.classList.add('hidden'); themeText.textContent = 'Light Mode'; } 
-        else { sunIcon.classList.add('hidden'); moonIcon.classList.remove('hidden'); themeText.textContent = 'Dark Mode'; }
+        if (isDark) { sunIcon.classList.remove('hidden'); moonIcon.classList.add('hidden'); themeText.textContent = 'Switch to Light'; } 
+        else { sunIcon.classList.add('hidden'); moonIcon.classList.remove('hidden'); themeText.textContent = 'Switch to Dark'; }
       }
       toggle?.addEventListener('click', () => {
         const isDark = document.documentElement.classList.contains('dark');

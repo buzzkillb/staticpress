@@ -11,13 +11,13 @@ StaticPress is a local-first static site generator that lets you create websites
 - **Local Admin Panel** - Create posts and pages in your browser
 - **Markdown Editor** - Write content with easy formatting
 - **Theme Customization** - Visual and code-based theming
-- **One-Click Deploy** - Deploy to Cloudflare Pages withwrangler
+- **One-Click Deploy** - Deploy to Cloudflare Pages with wrangler
 - **Open Source** - Free to use and modify
 
 ## Tech Stack
 
 - **Astro** - Static site generator
-- **React** - Interactive admin UI
+- **Vanilla JS** - Interactive admin UI
 - **Tailwind CSS** - Styling
 - **Bun** - Runtime
 - **Cloudflare Pages** - Deployment

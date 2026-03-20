@@ -1,13 +1,9 @@
----
-import '../../styles/global.css';
-const pageTitle = "Deploy Settings";
----
 <!DOCTYPE html>
 <html lang="en" class="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{pageTitle} | StaticPress Admin</title>
+    <title>Deploy Settings | StaticPress Admin</title>
     <script is:inline>
       if (localStorage.getItem('theme') === 'light') document.documentElement.classList.remove('dark');
       else document.documentElement.classList.add('dark');
@@ -29,7 +25,7 @@ const pageTitle = "Deploy Settings";
           </div>
           <div class="pt-4"><h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider px-4 mb-2">Publish</h3>
             <a href="/admin/build" class="block px-4 py-2 rounded hover:bg-gray-800 transition">Build Site</a>
-            <a href="/admin/deploy" class="block px-4 py-2 rounded hover:bg-gray-800 transition">Deploy Settings</a>
+            <a href="/admin/deploy" class="block px-4 py-2 rounded bg-gray-800 transition">Deploy Settings</a>
           </div>
         </nav>
         <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-800">
@@ -45,112 +41,220 @@ const pageTitle = "Deploy Settings";
         <div class="max-w-4xl">
           <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-8">Deploy Settings</h1>
           
+          <!-- Site Configuration -->
           <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-6">
-            <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Cloudflare Configuration</h2>
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Site Configuration</h2>
+            <p class="text-gray-600 dark:text-gray-300 text-sm mb-4">These settings are used for SEO, sitemap, and contact form.</p>
+            
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Site URL</label>
+                <input type="url" id="site-url" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg" placeholder="https://example.com" />
+                <p class="text-xs text-gray-500 mt-1">Your deployed site URL (no trailing slash)</p>
+              </div>
+              
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Formspree Form ID <a href="https://formspree.io" target="_blank" class="text-blue-500 text-xs">(Get Free Form →)</a></label>
+                <input type="text" id="formspree-id" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg" placeholder="xyzabc123" />
+                <p class="text-xs text-gray-500 mt-1">Required for contact form to work. Get a free form ID from formspree.io</p>
+              </div>
+              
+              <button id="save-site-config" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Save Site Settings</button>
+              <span id="site-config-status" class="ml-3 text-sm text-green-600 dark:text-green-400 hidden"></span>
+            </div>
+          </div>
+          
+          <!-- Cloudflare Configuration -->
+          <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-6">
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Cloudflare Pages Configuration</h2>
             
             <div class="space-y-4">
               <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Project Name</label>
                 <input type="text" id="cf-project" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg" placeholder="my-static-site" />
               </div>
-              
+               
               <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">API Token <a href="https://dash.cloudflare.com/profile/api-tokens" target="_blank" class="text-blue-500 text-xs">(Get Token →)</a></label>
                 <input type="password" id="cf-token" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg" placeholder="toke****oken" />
                 <p class="text-xs text-gray-500 mt-1">Token needs "Cloudflare Pages: Edit" permission</p>
               </div>
-              
+               
               <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Account ID</label>
                 <input type="text" id="cf-account" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg" placeholder="Your Cloudflare Account ID" />
               </div>
-              
-              <button id="save-config" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Save Settings</button>
+               
+              <button id="save-cf-config" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Save Cloudflare Settings</button>
             </div>
           </div>
           
+          <!-- Deploy Section -->
           <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-6">
-            <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Deploy to Cloudflare</h2>
-            <p class="text-gray-600 dark:text-gray-300 mb-4">Make sure you've built the site first from Build Site page.</p>
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Deploy to Cloudflare Pages</h2>
+            <p class="text-gray-600 dark:text-gray-300 mb-4">Make sure you've built the site first from the Build Site page.</p>
+            
+            <div id="placeholder-warning" class="bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 mb-4 hidden">
+              <p class="text-yellow-700 dark:text-yellow-300 text-sm">⚠️ Site URL is still set to placeholder. Update it above before deploying.</p>
+            </div>
             
             <button id="deploy-btn" class="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition">
-              Deploy Now
+              Show Deploy Command
             </button>
             
             <div id="deploy-output" class="mt-4 bg-gray-900 rounded-lg p-4 hidden">
-              <pre class="text-green-400 font-mono text-sm whitespace-pre-wrap" id="deploy-logs"></pre>
+              <p class="text-yellow-400 text-sm mb-2">⚠️ Run this command in your terminal to deploy. Set token via: export CF_API_TOKEN="your-token"</p>
+              <pre class="text-green-400 font-mono text-sm whitespace-pre-wrap mb-4" id="deploy-logs"></pre>
             </div>
           </div>
           
+          <!-- Config File -->
           <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-6">
-            <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Local Config File</h2>
-            <p class="text-gray-600 dark:text-gray-300 mb-4 text-sm">Save your config to a local file instead of browser storage. File is automatically added to .gitignore.</p>
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Save/Load Configuration</h2>
+            <p class="text-gray-600 dark:text-gray-300 mb-4 text-sm">Save all settings to a config file. File is automatically added to .gitignore.</p>
             <div class="flex gap-3">
-              <button id="load-config" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition">Load from File</button>
-              <button id="save-config-file" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">Save to File</button>
+              <button id="load-config" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition">Load Config File</button>
+              <button id="save-config" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">Save Config File</button>
             </div>
             <p id="config-status" class="text-sm text-gray-500 mt-2"></p>
           </div>
           
           <div class="bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
-            <h3 class="font-medium text-yellow-800 dark:text-yellow-200 mb-2">Getting API Token</h3>
-            <ol class="text-sm text-yellow-700 dark:text-yellow-300 space-y-1 list-decimal list-inside">
-              <li>Go to <a href="https://dash.cloudflare.com/profile/api-tokens" target="_blank" class="underline">Cloudflare Dashboard</a></li>
-              <li>Click "Create Custom Token"</li>
-              <li>Add permission: <code class="bg-yellow-100 dark:bg-yellow-800 px-1">Account &gt; Cloudflare Pages: Edit</code></li>
-              <li>Create and copy the token</li>
-            </ol>
+            <h3 class="font-medium text-yellow-800 dark:text-yellow-200 mb-2">⚠️ Security Warning</h3>
+            <p class="text-sm text-yellow-700 dark:text-yellow-300 mb-2">API tokens stored in browser localStorage are vulnerable to XSS attacks. For production use, keep your token in a config file instead.</p>
           </div>
         </div>
       </main>
     </div>
     
     <script is:inline>
+      const SITE_URL_KEY = 'site_url';
+      const FORMSPREE_KEY = 'formspree_id';
+      const CF_PROJECT_KEY = 'cf_project';
+      const CF_TOKEN_KEY = 'cf_token';
+      const CF_ACCOUNT_KEY = 'cf_account';
+      
       function maskToken(token) {
         if (!token || token.length < 8) return token;
         return token.slice(0, 4) + '****' + token.slice(-4);
       }
       
-      let storedToken = localStorage.getItem('cf_token');
-      if (storedToken) {
-        document.getElementById('cf-token').value = storedToken;
-        document.getElementById('cf-token').placeholder = maskToken(storedToken);
+      function isPlaceholderUrl(url) {
+        return !url || url === 'https://yoursite.com' || url.includes('localhost');
       }
       
-      const savedProject = localStorage.getItem('cf_project');
-      const savedAccount = localStorage.getItem('cf_account');
-      if (savedProject) document.getElementById('cf-project').value = savedProject;
-      if (savedAccount) document.getElementById('cf-account').value = savedAccount;
+      function showStatus(el, message, isError = false) {
+        el.textContent = message;
+        el.className = isError ? 'ml-3 text-sm text-red-600 dark:text-red-400' : 'ml-3 text-sm text-green-600 dark:text-green-400';
+        el.classList.remove('hidden');
+        setTimeout(() => el.classList.add('hidden'), 3000);
+      }
       
-      document.getElementById('save-config').addEventListener('click', () => {
-        const project = document.getElementById('cf-project').value;
-        const token = document.getElementById('cf-token').value || storedToken;
-        const account = document.getElementById('cf-account').value;
+      // Load values from localStorage
+      const siteUrl = localStorage.getItem(SITE_URL_KEY) || '';
+      const formspreeId = localStorage.getItem(FORMSPREE_KEY) || '';
+      const cfProject = localStorage.getItem(CF_PROJECT_KEY) || '';
+      const cfAccount = localStorage.getItem(CF_ACCOUNT_KEY) || '';
+      const cfToken = localStorage.getItem(CF_TOKEN_KEY) || '';
+      
+      // Populate fields
+      document.getElementById('site-url').value = siteUrl;
+      document.getElementById('formspree-id').value = formspreeId;
+      document.getElementById('cf-project').value = cfProject;
+      document.getElementById('cf-account').value = cfAccount;
+      if (cfToken) {
+        document.getElementById('cf-token').value = cfToken;
+        document.getElementById('cf-token').placeholder = maskToken(cfToken);
+      }
+      
+      // Check for placeholder warning
+      if (isPlaceholderUrl(siteUrl)) {
+        document.getElementById('placeholder-warning').classList.remove('hidden');
+      }
+      
+      // Save Site Config
+      document.getElementById('save-site-config').addEventListener('click', () => {
+        const url = document.getElementById('site-url').value.trim();
+        const formId = document.getElementById('formspree-id').value.trim();
         
-        if (!project || !token || !account) {
-          alert('Please fill in all fields!');
+        if (!url) {
+          alert('Site URL is required!');
           return;
         }
         
-        localStorage.setItem('cf_project', project);
-        localStorage.setItem('cf_token', token);
-        localStorage.setItem('cf_account', account);
-        storedToken = token;
-        document.getElementById('cf-token').placeholder = maskToken(token);
-        alert('Settings saved to browser!');
+        localStorage.setItem(SITE_URL_KEY, url);
+        localStorage.setItem(FORMSPREE_KEY, formId);
+        
+        const warningEl = document.getElementById('placeholder-warning');
+        if (isPlaceholderUrl(url)) {
+          warningEl.classList.remove('hidden');
+        } else {
+          warningEl.classList.add('hidden');
+        }
+        
+        showStatus(document.getElementById('site-config-status'), 'Site settings saved!');
       });
       
-      document.getElementById('save-config-file').addEventListener('click', async () => {
-        const project = document.getElementById('cf-project').value;
-        const token = document.getElementById('cf-token').value || storedToken;
-        const account = document.getElementById('cf-account').value;
+      // Save Cloudflare Config
+      document.getElementById('save-cf-config').addEventListener('click', () => {
+        const project = document.getElementById('cf-project').value.trim();
+        const token = document.getElementById('cf-token').value.trim();
+        const account = document.getElementById('cf-account').value.trim();
         
-        if (!project || !account) {
-          alert('Please fill in Project Name and Account ID first!');
+        if (!project || !token || !account) {
+          alert('Please fill in all Cloudflare fields!');
           return;
         }
         
-        const config = { project, token, account };
+        localStorage.setItem(CF_PROJECT_KEY, project);
+        localStorage.setItem(CF_TOKEN_KEY, token);
+        localStorage.setItem(CF_ACCOUNT_KEY, account);
+        
+        document.getElementById('cf-token').placeholder = maskToken(token);
+        alert('Cloudflare settings saved!');
+      });
+      
+      // Deploy button
+      document.getElementById('deploy-btn').addEventListener('click', () => {
+        const project = localStorage.getItem(CF_PROJECT_KEY);
+        const account = localStorage.getItem(CF_ACCOUNT_KEY);
+        
+        if (!project || !account) {
+          alert('Please save your Cloudflare settings first!');
+          return;
+        }
+        
+        // Sanitize for shell safety - remove potentially dangerous characters
+        const sanitize = (s) => s.replace(/[;&|`$<>\\]/g, '_');
+        const safeProject = sanitize(project);
+        const safeAccount = sanitize(account);
+        
+        const output = document.getElementById('deploy-output');
+        const logs = document.getElementById('deploy-logs');
+        
+        output.classList.remove('hidden');
+        
+        const command = `export CF_API_TOKEN="your-token-here" && export CF_ACCOUNT_ID=${safeAccount} && bunx wrangler pages deploy dist --project-name=${safeProject}`;
+        
+        logs.innerHTML = `<p class="text-yellow-400 text-xs mb-2">Copy and run this command in your terminal. Set your actual API token in the command above.</p><code class="text-green-400">${command}</code>`;
+      });
+      
+      // Save config file
+      document.getElementById('save-config').addEventListener('click', () => {
+        const siteUrl = localStorage.getItem(SITE_URL_KEY) || '';
+        const formspreeId = localStorage.getItem(FORMSPREE_KEY) || '';
+        const cfProject = localStorage.getItem(CF_PROJECT_KEY) || '';
+        const cfAccount = localStorage.getItem(CF_ACCOUNT_KEY) || '';
+        
+        const config = {
+          siteUrl,
+          formspreeId,
+          cloudflare: {
+            project: cfProject,
+            account: cfAccount
+          }
+        };
+        
         const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -159,9 +263,10 @@ const pageTitle = "Deploy Settings";
         a.click();
         URL.revokeObjectURL(url);
         
-        document.getElementById('config-status').textContent = 'Config downloaded! WARNING: Contains API token - keep file secure.';
+        document.getElementById('config-status').textContent = 'Config saved! Token not included for security.';
       });
       
+      // Load config file
       document.getElementById('load-config').addEventListener('click', async () => {
         const input = document.createElement('input');
         input.type = 'file';
@@ -173,52 +278,48 @@ const pageTitle = "Deploy Settings";
           const text = await file.text();
           try {
             const config = JSON.parse(text);
-            if (config.project) document.getElementById('cf-project').value = config.project;
-            if (config.account) document.getElementById('cf-account').value = config.account;
             
-            localStorage.setItem('cf_project', config.project || '');
-            localStorage.setItem('cf_account', config.account || '');
-            if (config.token) {
-              localStorage.setItem('cf_token', config.token);
-              storedToken = config.token;
-              document.getElementById('cf-token').value = config.token;
-              document.getElementById('cf-token').placeholder = maskToken(config.token);
-              document.getElementById('config-status').textContent = 'Config loaded with API token!';
-            } else {
-              document.getElementById('config-status').textContent = 'Config loaded! Token still needed - enter it below.';
+            // Site settings
+            if (config.siteUrl) {
+              localStorage.setItem(SITE_URL_KEY, config.siteUrl);
+              document.getElementById('site-url').value = config.siteUrl;
             }
+            if (config.formspreeId) {
+              localStorage.setItem(FORMSPREE_KEY, config.formspreeId);
+              document.getElementById('formspree-id').value = config.formspreeId;
+            }
+            
+            // Cloudflare settings
+            if (config.cloudflare) {
+              if (config.cloudflare.project) {
+                localStorage.setItem(CF_PROJECT_KEY, config.cloudflare.project);
+                document.getElementById('cf-project').value = config.cloudflare.project;
+              }
+              if (config.cloudflare.account) {
+                localStorage.setItem(CF_ACCOUNT_KEY, config.cloudflare.account);
+                document.getElementById('cf-account').value = config.cloudflare.account;
+              }
+              if (config.cloudflare.token) {
+                localStorage.setItem(CF_TOKEN_KEY, config.cloudflare.token);
+                document.getElementById('cf-token').value = config.cloudflare.token;
+                document.getElementById('cf-token').placeholder = maskToken(config.cloudflare.token);
+              }
+            }
+            
+            // Update warning
+            const warningEl = document.getElementById('placeholder-warning');
+            if (isPlaceholderUrl(config.siteUrl)) {
+              warningEl.classList.remove('hidden');
+            } else {
+              warningEl.classList.add('hidden');
+            }
+            
+            document.getElementById('config-status').textContent = 'Config loaded successfully!';
           } catch (err) {
             alert('Invalid config file');
           }
         };
         input.click();
-      });
-      
-      document.getElementById('deploy-btn').addEventListener('click', async () => {
-        const project = localStorage.getItem('cf_project');
-        const token = localStorage.getItem('cf_token');
-        const account = localStorage.getItem('cf_account');
-        
-        if (!project || !token || !account) {
-          alert('Please save your Cloudflare settings first!');
-          return;
-        }
-        
-        const btn = document.getElementById('deploy-btn');
-        const output = document.getElementById('deploy-output');
-        const logs = document.getElementById('deploy-logs');
-        
-        btn.disabled = true;
-        btn.textContent = 'Preparing...';
-        output.classList.remove('hidden');
-        logs.textContent = 'Deploying to Cloudflare Pages...\n\n';
-        logs.textContent += 'Run this command in your terminal:\n\n';
-        logs.textContent += `  CF_API_TOKEN=${maskToken(token)} \\\n  CF_ACCOUNT_ID=${account} \\\n  bunx wrangler pages deploy dist --project-name=${project}\n\n`;
-        logs.textContent += 'Make sure you have run "bun run build" first!\n';
-        logs.textContent += '\n⚠️ Replace the masked token with your actual API token.';
-        
-        btn.disabled = false;
-        btn.textContent = 'Show Deploy Command';
       });
     </script>
     
@@ -227,8 +328,8 @@ const pageTitle = "Deploy Settings";
       const sunIcon = document.getElementById('sun-icon'), moonIcon = document.getElementById('moon-icon'), themeText = document.getElementById('theme-text');
       function updateIcons() {
         const isDark = document.documentElement.classList.contains('dark');
-        if (isDark) { sunIcon.classList.remove('hidden'); moonIcon.classList.add('hidden'); themeText.textContent = 'Light Mode'; } 
-        else { sunIcon.classList.add('hidden'); moonIcon.classList.remove('hidden'); themeText.textContent = 'Dark Mode'; }
+        if (isDark) { sunIcon.classList.remove('hidden'); moonIcon.classList.add('hidden'); themeText.textContent = 'Switch to Light'; } 
+        else { sunIcon.classList.add('hidden'); moonIcon.classList.remove('hidden'); themeText.textContent = 'Switch to Dark'; }
       }
       toggle?.addEventListener('click', () => {
         const isDark = document.documentElement.classList.contains('dark');

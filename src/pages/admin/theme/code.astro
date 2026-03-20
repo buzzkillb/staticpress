@@ -53,16 +53,16 @@ const pageTitle = "Code Theme";
       </main>
     </div>
     <script is:inline>
-      const defaultCSS = `/* Theme Styles */
+      const defaultCSS = `/* Theme CSS - Only CSS custom properties are applied */
+/* Available properties: --color-primary, --color-background, --color-text, --color-secondary, --color-accent, --color-border, --color-heading, --color-link, --color-link-hover, --color-code-background, --color-code-text, --font-family-base, --font-family-heading, --font-size-*, --spacing-*, --border-radius-*, --shadow-* */
 :root {
   --color-primary: #3b82f6;
   --color-background: #ffffff;
   --color-text: #1f2937;
-}
-body {
-  font-family: system-ui, sans-serif;
-  background-color: var(--color-background);
-  color: var(--color-text);
+  --color-secondary: #6b7280;
+  --color-accent: #10b981;
+  --spacing-base: 1rem;
+  --border-radius: 0.5rem;
 }`;
       const editor = document.getElementById('css-editor');
       if (editor) editor.value = localStorage.getItem('theme_css') || defaultCSS;
@@ -73,8 +73,8 @@ body {
       const sunIcon = document.getElementById('sun-icon'), moonIcon = document.getElementById('moon-icon'), themeText = document.getElementById('theme-text');
       function updateIcons() {
         const isDark = document.documentElement.classList.contains('dark');
-        if (isDark) { sunIcon.classList.remove('hidden'); moonIcon.classList.add('hidden'); themeText.textContent = 'Light Mode'; } 
-        else { sunIcon.classList.add('hidden'); moonIcon.classList.remove('hidden'); themeText.textContent = 'Dark Mode'; }
+        if (isDark) { sunIcon.classList.remove('hidden'); moonIcon.classList.add('hidden'); themeText.textContent = 'Switch to Light'; } 
+        else { sunIcon.classList.add('hidden'); moonIcon.classList.remove('hidden'); themeText.textContent = 'Switch to Dark'; }
       }
       toggle?.addEventListener('click', () => {
         const isDark = document.documentElement.classList.contains('dark');

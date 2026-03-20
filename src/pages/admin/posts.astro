@@ -107,11 +107,49 @@ const pageTitle = "Posts";
     </div>
     
     <script is:inline>
-      let posts = JSON.parse(localStorage.getItem('posts') || '[]');
+      let posts = [];
+      try {
+        posts = JSON.parse(localStorage.getItem('posts') || '[]');
+      } catch (e) {
+        posts = [];
+      }
       
       function escapeHtml(str) {
         if (!str) return '';
-        return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+      }
+      
+      function escapeYAML(str) {
+        if (!str) return '';
+        return str.replace(/"/g, '\\"').replace(/\n/g, '\\n');
+      }
+      
+      function formatFrontmatter(post) {
+        const lines = [
+          '---',
+          `title: "${escapeYAML(post.title)}"`,
+          `date: ${post.date}`,
+          `excerpt: "${escapeYAML(post.excerpt || '')}"`,
+          `published: ${post.published}`,
+          '---',
+          '',
+        ];
+        if (post.content) {
+          // Escape any --- sequences that would prematurely end frontmatter
+          const escapedContent = post.content.replace(/^---$/gm, '\\-\\-\\-');
+          lines.push(...escapedContent.split('\n'));
+        }
+        return lines.join('\n');
+      }
+      
+      function downloadFile(content, filename) {
+        const blob = new Blob([content], { type: 'text/markdown' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(url);
       }
       
       function renderPosts() {
@@ -169,13 +207,22 @@ const pageTitle = "Posts";
         const content = document.getElementById('post-content').value;
         const published = document.getElementById('post-published').checked;
         
-        if (!title) { alert('Title is required!'); return; }
+        if (!title || !title.trim()) { alert('Title is required!'); return; }
+        
+        const editIndex = document.getElementById('save-post-btn').dataset.editIndex;
+        const existingIndex = editIndex !== undefined ? parseInt(editIndex) : -1;
+        
+        // Check for duplicate slugs
+        const duplicateSlug = posts.findIndex((p, i) => p.slug === slug && i !== existingIndex);
+        if (duplicateSlug !== -1) {
+          alert(`A post with slug "${slug}" already exists. Please use a different slug.`);
+          return;
+        }
         
         const post = { title, slug, excerpt, content, published, date: new Date().toISOString().split('T')[0] };
         
-        const editIndex = document.getElementById('save-post-btn').dataset.editIndex;
-        if (editIndex !== undefined) {
-          posts[editIndex] = post;
+        if (existingIndex !== -1) {
+          posts[existingIndex] = post;
         } else {
           posts.push(post);
         }
@@ -183,22 +230,7 @@ const pageTitle = "Posts";
         localStorage.setItem('posts', JSON.stringify(posts));
         
         // Auto-export on save
-        const frontmatter = `---
-title: "${post.title}"
-date: ${post.date}
-excerpt: "${post.excerpt || ''}"
-published: ${post.published}
----
-
-${post.content || ''}
-`;
-        const blob = new Blob([frontmatter], { type: 'text/markdown' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${post.slug}.md`;
-        a.click();
-        URL.revokeObjectURL(url);
+        downloadFile(formatFrontmatter(post), `${post.slug}.md`);
         
         hideEditor();
         renderPosts();
@@ -243,38 +275,19 @@ ${post.content || ''}
       
       renderPosts();
       
-      // Export functionality
+      // Export functionality - download each post as individual file
       document.getElementById('export-posts-btn').addEventListener('click', () => {
         if (posts.length === 0) { alert('No posts to export!'); return; }
         
-        let output = '';
-        posts.forEach(post => {
-          const frontmatter = `---
-title: "${post.title}"
-date: ${post.date || new Date().toISOString().split('T')[0]}
-excerpt: "${post.excerpt || ''}"
-published: ${post.published}
----
-
-`;
-          output += `<!-- ${post.slug}.md -->
-${frontmatter}${post.content || ''}
-
-
-
-
-`;
+        posts.forEach((post, i) => {
+          setTimeout(() => {
+            downloadFile(formatFrontmatter(post), `${post.slug}.md`);
+          }, i * 200);
         });
         
-        // Create download
-        const blob = new Blob([output], { type: 'text/markdown' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'posts-export.md';
-        a.click();
-        URL.revokeObjectURL(url);
-        alert('Posts exported! Copy the content to src/content/posts/ folder.');
+        setTimeout(() => {
+          alert(`${posts.length} posts exported! Each .md file downloaded. Move them to src/content/posts/ folder.`);
+        }, posts.length * 200 + 100);
       });
     </script>
     
@@ -283,8 +296,8 @@ ${frontmatter}${post.content || ''}
       const sunIcon = document.getElementById('sun-icon'), moonIcon = document.getElementById('moon-icon'), themeText = document.getElementById('theme-text');
       function updateIcons() {
         const isDark = document.documentElement.classList.contains('dark');
-        if (isDark) { sunIcon.classList.remove('hidden'); moonIcon.classList.add('hidden'); themeText.textContent = 'Light Mode'; } 
-        else { sunIcon.classList.add('hidden'); moonIcon.classList.remove('hidden'); themeText.textContent = 'Dark Mode'; }
+        if (isDark) { sunIcon.classList.remove('hidden'); moonIcon.classList.add('hidden'); themeText.textContent = 'Switch to Light'; } 
+        else { sunIcon.classList.add('hidden'); moonIcon.classList.remove('hidden'); themeText.textContent = 'Switch to Dark'; }
       }
       toggle?.addEventListener('click', () => {
         const isDark = document.documentElement.classList.contains('dark');
