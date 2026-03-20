@@ -208,10 +208,10 @@ const pageTitle = "Posts";
         if (!title) { alert('Title is required!'); return; }
         
         const editIndex = document.getElementById('save-post-btn').dataset.editIndex;
-        const isNewPost = editIndex === undefined;
+        const existingIndex = editIndex !== undefined ? parseInt(editIndex) : -1;
         
         // Check for duplicate slugs
-        const duplicateSlug = posts.findIndex((p, i) => p.slug === slug && (isNewPost || i !== parseInt(editIndex)));
+        const duplicateSlug = posts.findIndex((p, i) => p.slug === slug && i !== existingIndex);
         if (duplicateSlug !== -1) {
           alert(`A post with slug "${slug}" already exists. Please use a different slug.`);
           return;
@@ -219,8 +219,8 @@ const pageTitle = "Posts";
         
         const post = { title, slug, excerpt, content, published, date: new Date().toISOString().split('T')[0] };
         
-        if (editIndex !== undefined) {
-          posts[editIndex] = post;
+        if (existingIndex !== -1) {
+          posts[existingIndex] = post;
         } else {
           posts.push(post);
         }

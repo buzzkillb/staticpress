@@ -78,7 +78,11 @@ const pageTitle = "Deploy Settings";
             </button>
             
             <div id="deploy-output" class="mt-4 bg-gray-900 rounded-lg p-4 hidden">
-              <pre class="text-green-400 font-mono text-sm whitespace-pre-wrap" id="deploy-logs"></pre>
+              <p class="text-yellow-400 text-sm mb-2">⚠️ Warning: Command contains your API token. Do not share this command.</p>
+              <pre class="text-green-400 font-mono text-sm whitespace-pre-wrap mb-4" id="deploy-logs"></pre>
+              <button id="copy-full-command" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition text-sm">
+                Copy Full Command
+              </button>
             </div>
           </div>
           
@@ -199,7 +203,7 @@ const pageTitle = "Deploy Settings";
         input.click();
       });
       
-      document.getElementById('deploy-btn').addEventListener('click', async () => {
+document.getElementById('deploy-btn').addEventListener('click', async () => {
         const project = localStorage.getItem('cf_project');
         const token = localStorage.getItem('cf_token');
         const account = localStorage.getItem('cf_account');
@@ -216,14 +220,35 @@ const pageTitle = "Deploy Settings";
         btn.disabled = true;
         btn.textContent = 'Preparing...';
         output.classList.remove('hidden');
-        logs.textContent = 'Deploying to Cloudflare Pages...\n\n';
-        logs.textContent += 'Run this command in your terminal:\n\n';
-        logs.textContent += `  CF_API_TOKEN=${maskToken(token)} \\\n  CF_ACCOUNT_ID=${account} \\\n  bunx wrangler pages deploy dist --project-name=${project}\n\n`;
-        logs.textContent += 'Make sure you have run "bun run build" first!\n';
-        logs.textContent += '\n⚠️ Replace the masked token with your actual API token.';
+        
+        const fullCommand = `CF_API_TOKEN=${token} CF_ACCOUNT_ID=${account} bunx wrangler pages deploy dist --project-name=${project}`;
+        const maskedCommand = `CF_API_TOKEN=${maskToken(token)} CF_ACCOUNT_ID=${account} bunx wrangler pages deploy dist --project-name=${project}`;
+        
+        logs.innerHTML = `<p class="text-yellow-400 text-xs mb-2">⚠️ Token will be visible in the copied command. Keep it secure!</p><code class="text-green-400">${maskedCommand.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</code>`;
+        logs.dataset.fullCommand = fullCommand;
         
         btn.disabled = false;
         btn.textContent = 'Show Deploy Command';
+      });
+      
+      document.getElementById('copy-full-command')?.addEventListener('click', async () => {
+        const logs = document.getElementById('deploy-logs');
+        const fullCommand = logs.dataset.fullCommand;
+        if (fullCommand) {
+          try {
+            await navigator.clipboard.writeText(fullCommand);
+            const btn = document.getElementById('copy-full-command');
+            const original = btn.textContent;
+            btn.textContent = 'Copied!';
+            btn.classList.add('bg-green-700');
+            setTimeout(() => {
+              btn.textContent = original;
+              btn.classList.remove('bg-green-700');
+            }, 2000);
+          } catch (err) {
+            alert('Failed to copy. Please select and copy manually.');
+          }
+        }
       });
     </script>
     
