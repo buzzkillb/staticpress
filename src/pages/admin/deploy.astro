@@ -224,14 +224,19 @@
           return;
         }
         
+        // Sanitize for shell safety - remove potentially dangerous characters
+        const sanitize = (s) => s.replace(/[;&|`$<>\\]/g, '_');
+        const safeProject = sanitize(project);
+        const safeAccount = sanitize(account);
+        
         const output = document.getElementById('deploy-output');
         const logs = document.getElementById('deploy-logs');
         
         output.classList.remove('hidden');
         
-        const command = `export CF_API_TOKEN="your-token-here" && export CF_ACCOUNT_ID=${account} && bunx wrangler pages deploy dist --project-name=${project}`;
+        const command = `export CF_API_TOKEN="your-token-here" && export CF_ACCOUNT_ID=${safeAccount} && bunx wrangler pages deploy dist --project-name=${safeProject}`;
         
-        logs.innerHTML = `<p class="text-yellow-400 text-xs mb-2">Copy and run this command in your terminal. Set your actual API token in the command above.</p><code class="text-green-400">${command.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</code>`;
+        logs.innerHTML = `<p class="text-yellow-400 text-xs mb-2">Copy and run this command in your terminal. Set your actual API token in the command above.</p><code class="text-green-400">${command}</code>`;
       });
       
       // Save config file
