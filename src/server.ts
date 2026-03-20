@@ -66,6 +66,15 @@ function invalidateCache() {
   contentCache = null;
 }
 
+function escapeXml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
+
 function ensureDirectories() {
   if (!existsSync(CONTENT_DIR)) mkdirSync(CONTENT_DIR, { recursive: true });
   if (!existsSync(POSTS_DIR)) mkdirSync(POSTS_DIR, { recursive: true });
@@ -572,13 +581,15 @@ function generateSitemap(): string {
   for (const post of posts) {
     if (post.published) {
       const lastmod = post.date ? new Date(post.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
-      urls.push(`<url><loc>${baseUrl}/blog/${post.slug}/</loc><lastmod>${lastmod}</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>`);
+      const slug = escapeXml(post.slug);
+      urls.push(`<url><loc>${baseUrl}/blog/${slug}/</loc><lastmod>${lastmod}</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>`);
     }
   }
   
   for (const page of pages) {
     if (page.published !== false) {
-      urls.push(`<url><loc>${baseUrl}/${page.slug}/</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>`);
+      const slug = escapeXml(page.slug);
+      urls.push(`<url><loc>${baseUrl}/${slug}/</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>`);
     }
   }
   

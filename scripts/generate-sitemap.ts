@@ -12,6 +12,15 @@ const PAGES_DIR = join(ROOT, 'src', 'content', 'pages');
 const config = loadConfig();
 const { siteUrl } = config;
 
+function escapeXml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
+
 function extractFrontmatter(content: string): { data: Record<string, unknown>; body: string } {
   const frontmatterRegex = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/;
   const match = content.match(frontmatterRegex);
@@ -41,7 +50,7 @@ function generateSitemap() {
         const content = readFileSync(join(POSTS_DIR, file), 'utf-8');
         const { data } = extractFrontmatter(content);
         if (data.published !== false) {
-          const slug = file.replace('.md', '');
+          const slug = escapeXml(file.replace('.md', ''));
           const lastmod = data.date ? new Date(data.date as string).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
           urls.push(`<url><loc>${siteUrl}/blog/${slug}/</loc><lastmod>${lastmod}</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>`);
         }
@@ -56,7 +65,7 @@ function generateSitemap() {
         const content = readFileSync(join(PAGES_DIR, file), 'utf-8');
         const { data } = extractFrontmatter(content);
         if (data.published !== false) {
-          const slug = file.replace('.md', '');
+          const slug = escapeXml(file.replace('.md', ''));
           urls.push(`<url><loc>${siteUrl}/${slug}/</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>`);
         }
       } catch (e) {}
